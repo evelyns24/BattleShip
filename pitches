@@ -1,0 +1,6 @@
+Pitches:
+
+1. Battleship. This project plays the game battleship against an AI. The player will place 4 or 5 ships on their board, while
+the computer will place the ships on their board. The player and computer will take turns dropping bombs on the opposing side's
+battlefield. If the bomb hits, then they are allotted an extra turn. The computer will have reasonable AI, with some strategy
+as to which squares to bomb. 
