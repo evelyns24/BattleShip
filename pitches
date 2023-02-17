@@ -8,3 +8,8 @@ as to which squares to bomb.
 2. 4-Player Chess. This project plays chess with 4 players. Each player is represented by a different colored set of regular chess pieces.
 The rules for the moves of each piece in this game are the same as noraml chess. A variant of this game can be played by forming teams 
 of two. Teammates work together to checkmate one member of the opposing team, and they cannot capture their teammate's pieces.
+
+3. Reversi. This projects plays Reversi with either two players or against an AI. The game will start off with four peices on the board 
+(2 white and 2 black). The players will then take turn placing their pieces on the board so that they can capture as many opponent pieces 
+as possible. The game ends when the board is entirely filled and the player with the most pieces wins.
+
