@@ -1,0 +1,24 @@
+Create brief outline of how the game (Battle Ship will work):
+
+1. What type of modules
+   a. ships
+   b. player
+   c. GUI module
+   d. game (two players)
+2. What types should be included for each module?
+   Ships:
+      a. location
+      b. shape
+      c. what parts have been hit
+   Player:
+      a. List of ships + their locations
+      b. List of squares bombed and their statuses
+      c. Number of my ships sunk
+      d. Number of my ships remaining
+2. How is the game state initialized?
+3. How do we play?
+   a. how does a player make progress?
+
+Don't write lines of code yet; write spec and possible functions!!
+(**[func x y] does .... Requires ....*)
+let func x y = Raise (Failure "Unimplemented func")
