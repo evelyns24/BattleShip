@@ -2,7 +2,6 @@ open OUnit2
 open Game
 open Ship
 open Command
-open State
 
 (********************************************************************
    Here are some helper functions for your testing of set-like lists.
@@ -21,7 +20,9 @@ let cmp_set_like_lists lst1 lst2 =
   && uniq1 = uniq2
 
 (** [pp_string s] pretty-prints string [s]. *)
-let pp_string s = "\"" ^ s ^ "\""
+let pp_coord (point : int * int) =
+  let x, y = point in
+  "(" ^ string_of_int x ^ ", " ^ string_of_int y ^ ")"
 
 (** [pp_list pp_elt lst] pretty-prints list [lst], using [pp_elt] to
     pretty-print each element of [lst]. *)
@@ -51,9 +52,58 @@ let data_dir_prefix = "data" ^ Filename.dir_sep
 
 (*let lonely = Yojson.Basic.from_file (data_dir_prefix ^ "lonely_room.json") let
   ho = Yojson.Basic.from_file (data_dir_prefix ^ "ho_plaza.json")*)
-let dummy_test name output = name >:: fun _ -> assert_equal output output
-let ship_blackbox_tests = []
-let ship_glassbox_tests = []
+
+let basic_ship = make [ (1, 1) ]
+let two_long = make [ (3, 1); (3, 2) ]
+let three_long = make [ (2, 2); (2, 3); (2, 1) ]
+let four_long = make [ (6, 4); (3, 4); (4, 4); (5, 4) ]
+let l_shaped = make [ (2, 4); (2, 5); (3, 5); (4, 5) ]
+
+(**[test_location name ship output] builds an OUnit test named [name] that tests
+   whether or not [location ship] returns the expected output [output]*)
+let test_location (name : string) (ship : t) (output : (int * int) list) =
+  name >:: fun _ ->
+  assert_equal output (location ship) ~cmp:cmp_set_like_lists
+    ~printer:(pp_list pp_coord)
+
+(**[test_rotate name ship point output] builds an OUnit test named [name] that
+   tests whether or not [rotate point ship] rotates the ship correctly by
+   comparing the location after the rotatation with the expected output [output]*)
+let test_rotate (name : string) (ship : t) (point : int * int)
+    (output : (int * int) list) =
+  name >:: fun _ ->
+  assert_equal output
+    (rotate point ship |> location)
+    ~cmp:cmp_set_like_lists ~printer:(pp_list pp_coord)
+
+let ship_blackbox_tests =
+  [
+    test_location "loc basic" basic_ship [ (1, 1) ];
+    test_location "loc two_long" two_long [ (3, 1); (3, 2) ];
+    test_location "loc four_long" four_long [ (6, 4); (3, 4); (4, 4); (5, 4) ];
+  ]
+
+let glass_rotate_test =
+  [
+    test_rotate "rotate basic 1x" basic_ship (1, 1) [ (1, 1) ];
+    test_rotate "rotate basic 2x" (rotate (1, 1) basic_ship) (1, 1) [ (1, 1) ];
+    test_rotate "rotate two 1x" two_long (3, 1) [ (3, 1); (2, 1) ];
+    test_rotate "rotate two 3x"
+      (rotate (3, 1) (rotate (3, 1) two_long))
+      (3, 1)
+      [ (3, 1); (4, 1) ];
+    test_rotate "rotate L 1x" l_shaped (3, 5) [ (3, 6); (3, 5); (3, 4); (4, 4) ];
+    test_rotate "rotate L 4x"
+      (rotate (3, 5) (rotate (3, 5) (rotate (3, 5) l_shaped)))
+      (3, 5)
+      [ (2, 4); (2, 5); (3, 5); (4, 5) ];
+    test_rotate "rotate three 2 pts"
+      (rotate (2, 3) three_long)
+      (4, 3)
+      [ (4, 3); (4, 2); (4, 1) ];
+  ]
+
+let ship_glassbox_tests = List.flatten [ glass_rotate_test ]
 
 let suite =
   "test suite for A2"

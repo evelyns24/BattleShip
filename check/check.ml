@@ -5,11 +5,12 @@ module type ShipSig = sig
 
   exception OutOfBounds
 
-  val location : t -> int * int list
+  val make : (int * int) list -> t
+  val location : t -> (int * int) list
   val sunk : t -> t
   val hit : t -> int -> int -> t
   val place : t -> int -> int -> int -> int -> t
-  val rotate : t -> int * int -> t
+  val rotate : int * int -> t -> t
 end
 
 module ShipCheck : ShipSig = Ship
