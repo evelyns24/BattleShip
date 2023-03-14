@@ -23,9 +23,7 @@ let rec make_h (points : (int * int) list) : h list =
 let make (loc : (int * int) list) = { hits = make_h loc; status = false }
 
 let rec location (ship : t) : (int * int) list =
-  match ship.hits with
-  | [] -> []
-  | h :: t -> (h.x, h.y) :: location { hits = t; status = ship.status }
+  raise (Failure "Unimplemented sunk")
 
 let sunk (ship : t) : t = raise (Failure "Unimplemented sunk")
 let hit (ship : t) (x : int) (y : int) : t = raise (Failure "Unimplemented hit")
