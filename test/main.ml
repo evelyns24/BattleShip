@@ -76,11 +76,56 @@ let test_rotate (name : string) (ship : t) (point : int * int)
     (rotate point ship |> location)
     ~cmp:cmp_set_like_lists ~printer:(pp_list pp_coord)
 
+(** [place_test name ship x y height width expected_output] constructs an OUnit
+    test named [name] that asserts the quality of [expected_output] with
+    [place ship x y height width]. *)
+let place_test (name : string) (ship : Ship.t) (x : int) (y : int)
+    (height : int) (width : int) (expected_output : (int * int) list) : test =
+  name >:: fun _ ->
+  assert_equal expected_output
+    (location (place ship x y height width))
+    ~cmp:cmp_set_like_lists ~printer:(pp_list pp_coord)
+
+let glassbox_place =
+  [
+    ( "out of bound: negative x" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> place l_shaped (-3) 1 8 8) );
+    ( "out of bound: x too big" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> place l_shaped 5 1 8 8) );
+    ( "out of bound: y too big" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> place l_shaped 1 5 8 8) );
+    ( "out of bound: negative y" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> place l_shaped 5 (-6) 8 8) );
+    place_test "up 3 right 4" l_shaped 4 3 8 8
+      [ (6, 7); (6, 8); (7, 8); (8, 8) ];
+    place_test "down 1 right 4" l_shaped 4 (-1) 8 8
+      [ (6, 3); (6, 4); (7, 4); (8, 4) ];
+    place_test "up 1 left 2" l_shaped (-2) 1 8 8
+      [ (0, 5); (0, 6); (1, 6); (2, 6) ];
+    place_test "down 4 left 2" l_shaped (-2) (-4) 8 8
+      [ (0, 0); (0, 1); (1, 1); (2, 1) ];
+  ]
+
 let ship_blackbox_tests =
   [
     test_location "loc basic" basic_ship [ (1, 1) ];
     test_location "loc two_long" two_long [ (3, 1); (3, 2) ];
     test_location "loc four_long" four_long [ (6, 4); (3, 4); (4, 4); (5, 4) ];
+    test_rotate "basic" basic_ship (1, 1) [ (1, 1) ];
+    test_rotate "rotate three about one end " three_long (2, 1)
+      [ (0, 1); (1, 1); (2, 1) ];
+    test_rotate "rotate three about another end " three_long (2, 3)
+      [ (2, 3); (3, 3); (4, 3) ];
+    test_rotate "rotate three about center " three_long (2, 2)
+      [ (1, 2); (2, 2); (3, 2) ];
+    test_rotate "rotate l about one end " l_shaped (2, 4)
+      [ (2, 4); (1, 4); (1, 5); (1, 6) ];
+    test_rotate "rotate l abut corner " l_shaped (2, 5)
+      [ (3, 5); (2, 5); (2, 6); (2, 7) ];
+    test_rotate "rotate l about another end " l_shaped (4, 5)
+      [ (4, 5); (4, 4); (4, 3); (5, 3) ];
+    test_rotate "rotate l about (3,5)" l_shaped (3, 5)
+      [ (3, 4); (4, 4); (3, 5); (3, 6) ];
   ]
 
 let glass_rotate_test =
@@ -103,7 +148,7 @@ let glass_rotate_test =
       [ (4, 3); (4, 2); (4, 1) ];
   ]
 
-let ship_glassbox_tests = List.flatten [ glass_rotate_test ]
+let ship_glassbox_tests = List.flatten [ glass_rotate_test; glassbox_place ]
 
 let suite =
   "test suite for A2"
