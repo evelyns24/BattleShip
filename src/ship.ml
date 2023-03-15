@@ -22,22 +22,48 @@ let rec make_h (points : (int * int) list) : h list =
 
 let make (loc : (int * int) list) = { hits = make_h loc; status = false }
 
-<<<<<<< HEAD
 (**[location_h hit_list] creates a list of (int * int) from [hit_list],
    representing all of the coordinates that a ship covers on the board*)
 let rec location_h (hit_list : h list) : (int * int) list =
   match hit_list with
   | [] -> []
   | h :: t -> (h.x, h.y) :: location_h t
-=======
-let rec location (ship : t) : (int * int) list =
-  raise (Failure "Unimplemented sunk")
->>>>>>> 6579436c06e9b2319ecc77dcf82965d5f67af504
 
-let rec location (ship : t) : (int * int) list = location_h ship.hits
-let sunk (ship : t) : t = raise (Failure "Unimplemented sunk")
-let hit (ship : t) (x : int) (y : int) : t = raise (Failure "Unimplemented hit")
+let location (ship : t) : (int * int) list = location_h ship.hits
 
+(**[sunk_h hit_list] returns true if every single location in [hit_list] has
+   been hit, representing that the ship has been sunk. false is returned
+   otherwise*)
+let rec sunk_h (hit_list : h list) : bool =
+  match hit_list with
+  | [] -> true
+  | h :: t -> h.hit && sunk_h t
+  
+let sunk (ship : t) : t =
+  if sunk_h ship.hits then { hits = ship.hits; status = true }
+  else { hits = ship.hits; status = false }
+ 
+(**[build_list h hit_list] builds a new hits from original [hit_list]
+  for ship to update that a certain [h] has been hit within the ship*)
+let rec build_list (h : h) (hit_list : h list) = 
+  match hit_list with 
+  | [] -> []
+  | head :: tail -> if head = h then {x = h.x; y = h.y; hit = true} :: build_list h tail else head :: build_list h tail
+
+(**[hit_h hit_list x y ship] checks which position (or h) of the [ship] is
+  hit with [x] and [y] coordinates and calls build_list to construct a new 
+  hits from [hit_list]*)
+let rec hit_h (hit_list : h list) (x : int) (y : int) (ship : t): h list =
+  match hit_list with
+  | [] -> failwith "not a valid hit"
+  | h :: t -> if h.x = x && h.y = y then (build_list h ship.hits) else hit_h t x y ship
+    
+    
+let hit (ship : t) (x : int) (y : int) : t = 
+  {
+    hits = (hit_h ship.hits x y ship);
+    status = ship.status
+  }
 (** [h_list lst v h height width] returns an h list where v is added to a.x and
     h is added to a.y for all a in lst. Raises OutOfBounds if the new coords are
     outside of board *)
