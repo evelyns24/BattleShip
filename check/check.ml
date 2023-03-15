@@ -7,6 +7,7 @@ module type ShipSig = sig
 
   val make : (int * int) list -> t
   val location : t -> (int * int) list
+  val get_status : t -> bool
   val sunk : t -> t
   val hit : t -> int -> int -> t
   val place : t -> int -> int -> int -> int -> t
