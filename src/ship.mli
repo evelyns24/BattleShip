@@ -2,7 +2,8 @@
 
     This module represents a ship, which represents a ship's location and the
     status of each unit of the ship. Think of the board as the first quadrant of
-    the x-y plane, where the origin is at the bottom left corner*)
+    the x-y plane, where the origin is at the bottom left corner. A ship's
+    status is false while it is not sunk, and becomes true when it is sunk*)
 
 type t
 (** The abstract type of values representing ships *)

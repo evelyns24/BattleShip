@@ -43,26 +43,17 @@ let sunk (ship : t) : t =
   if sunk_h ship.hits then { hits = ship.hits; status = true }
   else { hits = ship.hits; status = false }
 
-(**[build_list h hit_list] builds a new hits from original [hit_list] for ship
-   to update that a certain [h] has been hit within the ship*)
-let rec build_list (h : h) (hit_list : h list) =
+(**[hit_h hit_list x y] checks which position (or h) of the [h_list] is hit with
+   [x] and [y] coordinates and constructs a new h list*)
+let rec hit_h (hit_list : h list) (x : int) (y : int) : h list =
   match hit_list with
   | [] -> []
-  | head :: tail ->
-      if head = h then { x = h.x; y = h.y; hit = true } :: build_list h tail
-      else head :: build_list h tail
-
-(**[hit_h hit_list x y ship] checks which position (or h) of the [ship] is hit
-   with [x] and [y] coordinates and calls build_list to construct a new hits
-   from [hit_list]*)
-let rec hit_h (hit_list : h list) (x : int) (y : int) (ship : t) : h list =
-  match hit_list with
-  | [] -> failwith "not a valid hit"
   | h :: t ->
-      if h.x = x && h.y = y then build_list h ship.hits else hit_h t x y ship
+      if h.x = x && h.y = y then { x = h.x; y = h.y; hit = true } :: t
+      else h :: hit_h t x y
 
 let hit (ship : t) (x : int) (y : int) : t =
-  { hits = hit_h ship.hits x y ship; status = ship.status }
+  { hits = hit_h ship.hits x y; status = ship.status }
 
 (** [h_list lst v h height width] returns an h list where v is added to a.x and
     h is added to a.y for all a in lst. Raises OutOfBounds if the new coords are
