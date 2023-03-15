@@ -22,9 +22,14 @@ let rec make_h (points : (int * int) list) : h list =
 
 let make (loc : (int * int) list) = { hits = make_h loc; status = false }
 
-let rec location (ship : t) : (int * int) list =
-  raise (Failure "Unimplmented location")
+(**[location_h hit_list] creates a list of (int * int) from [hit_list],
+   representing all of the coordinates that a ship covers on the board*)
+let rec location_h (hit_list : h list) : (int * int) list =
+  match hit_list with
+  | [] -> []
+  | h :: t -> (h.x, h.y) :: location_h t
 
+let location (ship : t) : (int * int) list = location_h ship.hits
 let sunk (ship : t) : t = raise (Failure "Unimplemented sunk")
 let hit (ship : t) (x : int) (y : int) : t = raise (Failure "Unimplemented hit")
 
