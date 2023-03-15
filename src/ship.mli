@@ -18,6 +18,10 @@ val location : t -> (int * int) list
 (** [location ship] returns the location of the ship as a list of tuple of 2
     integers.*)
 
+val get_status : t -> bool
+(** [get_status ship] returns the status for the ship. If it sank, then [true],
+    else [false]*)
+
 val sunk : t -> t
 (**[sunk ship] updates [ship] if it has been sunk. *)
 

@@ -30,6 +30,7 @@ let rec location_h (hit_list : h list) : (int * int) list =
   | h :: t -> (h.x, h.y) :: location_h t
 
 let location (ship : t) : (int * int) list = location_h ship.hits
+let get_status (ship : t) : bool = ship.status
 
 (**[sunk_h hit_list] returns true if every single location in [hit_list] has
    been hit, representing that the ship has been sunk. false is returned
