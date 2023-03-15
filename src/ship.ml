@@ -29,7 +29,7 @@ let rec location_h (hit_list : h list) : (int * int) list =
   | [] -> []
   | h :: t -> (h.x, h.y) :: location_h t
 
-let location (ship : t) : (int * int) list = location_h ship.hits
+let rec location (ship : t) : (int * int) list = location_h ship.hits
 let sunk (ship : t) : t = raise (Failure "Unimplemented sunk")
 let hit (ship : t) (x : int) (y : int) : t = raise (Failure "Unimplemented hit")
 
