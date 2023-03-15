@@ -1,7 +1,8 @@
 (** Representation of the ship data
 
     This module represents a ship, which represents a ship's location and the
-    status of each unit of the ship*)
+    status of each unit of the ship. Think of the board as the first quadrant of
+    the x-y plane, where the origin is at the bottom left corner*)
 
 type t
 (** The abstract type of values representing ships *)

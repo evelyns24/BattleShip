@@ -22,19 +22,37 @@ let rec make_h (points : (int * int) list) : h list =
 
 let make (loc : (int * int) list) = { hits = make_h loc; status = false }
 
+<<<<<<< HEAD
 (**[location_h hit_list] creates a list of (int * int) from [hit_list],
    representing all of the coordinates that a ship covers on the board*)
 let rec location_h (hit_list : h list) : (int * int) list =
   match hit_list with
   | [] -> []
   | h :: t -> (h.x, h.y) :: location_h t
+=======
+let rec location (ship : t) : (int * int) list =
+  raise (Failure "Unimplemented sunk")
+>>>>>>> 6579436c06e9b2319ecc77dcf82965d5f67af504
 
 let rec location (ship : t) : (int * int) list = location_h ship.hits
 let sunk (ship : t) : t = raise (Failure "Unimplemented sunk")
 let hit (ship : t) (x : int) (y : int) : t = raise (Failure "Unimplemented hit")
 
-let place (ship : t) (x : int) (y : int) (height : int) (width : int) : t =
-  raise (Failure "Unimplemented place")
+(** [h_list lst v h height width] returns an h list where v is added to a.x and
+    h is added to a.y for all a in lst. Raises OutOfBounds if the new coords are
+    outside of board *)
+let rec h_list lst v h height width =
+  match lst with
+  | [] -> []
+  | head :: tail ->
+      let x1 = head.x + v in
+      let y1 = head.y + h in
+      if x1 < 0 || x1 > width || y1 < 0 || y1 > height then raise OutOfBounds
+      else { x = x1; y = y1; hit = head.hit } :: h_list tail v h height width
+
+let rec place (ship : t) (x : int) (y : int) (height : int) (width : int) : t =
+  let lst = h_list ship.hits x y height width in
+  { hits = lst; status = ship.status }
 
 (**[rotate_list h_lst c_x c_y] takes in an h list [h] that rotates the (x,y)
    portion of the h about the point (c_x, c_y) for every h in the h list*)
