@@ -8,6 +8,7 @@ module type ShipSig = sig
   val make : (int * int) list -> t
   val location : t -> (int * int) list
   val get_status : t -> bool
+  val get_square_status : t -> int * int -> bool
   val sunk : t -> t
   val hit : t -> int -> int -> t
   val place : t -> int -> int -> int -> int -> t
@@ -15,6 +16,22 @@ module type ShipSig = sig
 end
 
 module ShipCheck : ShipSig = Ship
+
+module type BoardSig = sig
+  type t
+  type b
+
+  exception Collide
+
+  val from_json : Yojson.Basic.t -> b
+  val get_height : b -> int
+  val get_width : b -> int
+  val check_collision : b -> bool
+  val response : b -> int -> int -> bool
+  val score : b -> int
+end
+
+module BoardCheck : BoardSig = Board
 
 module type CommandSig = sig
   type object_phrase = string list
