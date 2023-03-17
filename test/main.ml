@@ -56,7 +56,7 @@ let data_dir_prefix = "data" ^ Filename.dir_sep
 let basic_ship = make [ (1, 1) ]
 let two_long = make [ (3, 1); (3, 2) ]
 let three_long = make [ (2, 2); (2, 3); (2, 1) ]
-let four_long = make [ (6, 4); (3, 4); (4, 4); (5, 4) ]
+let four_long = make [ (6, 4); (5, 4); (4, 4); (3, 4) ]
 let l_shaped = make [ (2, 4); (2, 5); (3, 5); (4, 5) ]
 
 (**[test_location name ship output] builds an OUnit test named [name] that tests
@@ -86,6 +86,21 @@ let place_test (name : string) (ship : Ship.t) (x : int) (y : int)
     (location (place ship x y height width))
     ~cmp:cmp_set_like_lists ~printer:(pp_list pp_coord)
 
+(** [status_test name ship expected_output] constructs an OUnit test named
+    [name] that asserts the quality of [expected_output] with
+    [get_status (sunk ship)]. This also tests hit, since the only way to change
+    the status of a ship is through hit *)
+let status_test (name : string) (ship : Ship.t) (expected_output : bool) =
+  name >:: fun _ -> assert_equal expected_output (get_status (sunk ship))
+
+(** [square_status_test name ship point expected_output] constructs an OUnit
+    test named [name] that asserts the quality of [expected_output] with
+    [get_square_status ship point]. This also tests hit, since the only way to
+    change the status of a ship square is through hit *)
+let square_status_test (name : string) (ship : t) (point : int * int)
+    (expected_output : bool) =
+  name >:: fun _ -> assert_equal expected_output (get_square_status ship point)
+
 let glassbox_place =
   [
     ( "out of bound: negative x" >:: fun _ ->
@@ -104,28 +119,6 @@ let glassbox_place =
       [ (0, 5); (0, 6); (1, 6); (2, 6) ];
     place_test "down 4 left 2" l_shaped (-2) (-4) 8 8
       [ (0, 0); (0, 1); (1, 1); (2, 1) ];
-  ]
-
-let ship_blackbox_tests =
-  [
-    test_location "loc basic" basic_ship [ (1, 1) ];
-    test_location "loc two_long" two_long [ (3, 1); (3, 2) ];
-    test_location "loc four_long" four_long [ (6, 4); (3, 4); (4, 4); (5, 4) ];
-    test_rotate "basic" basic_ship (1, 1) [ (1, 1) ];
-    test_rotate "rotate three about one end " three_long (2, 1)
-      [ (0, 1); (1, 1); (2, 1) ];
-    test_rotate "rotate three about another end " three_long (2, 3)
-      [ (2, 3); (3, 3); (4, 3) ];
-    test_rotate "rotate three about center " three_long (2, 2)
-      [ (1, 2); (2, 2); (3, 2) ];
-    test_rotate "rotate l about one end " l_shaped (2, 4)
-      [ (2, 4); (1, 4); (1, 5); (1, 6) ];
-    test_rotate "rotate l abut corner " l_shaped (2, 5)
-      [ (3, 5); (2, 5); (2, 6); (2, 7) ];
-    test_rotate "rotate l about another end " l_shaped (4, 5)
-      [ (4, 5); (4, 4); (4, 3); (5, 3) ];
-    test_rotate "rotate l about (3,5)" l_shaped (3, 5)
-      [ (3, 4); (4, 4); (3, 5); (3, 6) ];
   ]
 
 let glass_rotate_test =
@@ -148,7 +141,42 @@ let glass_rotate_test =
       [ (4, 3); (4, 2); (4, 1) ];
   ]
 
-let ship_glassbox_tests = List.flatten [ glass_rotate_test; glassbox_place ]
+(*Alisha write your hit and sunk tests here; when you want to test hit, just
+  call hit repeatedly and check it against get_square_status test and sunk test.
+  I did some in blackbox tests (do other ones)*)
+let glass_status_test = []
+
+let ship_glassbox_tests =
+  List.flatten [ glass_rotate_test; glassbox_place; glass_status_test ]
+
+let ship_blackbox_tests =
+  [
+    test_location "loc basic" basic_ship [ (1, 1) ];
+    test_location "loc two_long" two_long [ (3, 1); (3, 2) ];
+    test_location "loc four_long" four_long [ (6, 4); (3, 4); (4, 4); (5, 4) ];
+    test_rotate "basic" basic_ship (1, 1) [ (1, 1) ];
+    test_rotate "rotate three about one end " three_long (2, 1)
+      [ (0, 1); (1, 1); (2, 1) ];
+    test_rotate "rotate three about another end " three_long (2, 3)
+      [ (2, 3); (3, 3); (4, 3) ];
+    test_rotate "rotate three about center " three_long (2, 2)
+      [ (1, 2); (2, 2); (3, 2) ];
+    test_rotate "rotate l about one end " l_shaped (2, 4)
+      [ (2, 4); (1, 4); (1, 5); (1, 6) ];
+    test_rotate "rotate l abut corner " l_shaped (2, 5)
+      [ (3, 5); (2, 5); (2, 6); (2, 7) ];
+    test_rotate "rotate l about another end " l_shaped (4, 5)
+      [ (4, 5); (4, 4); (4, 3); (5, 3) ];
+    test_rotate "rotate l about (3,5)" l_shaped (3, 5)
+      [ (3, 4); (4, 4); (3, 5); (3, 6) ];
+    status_test "status floating basic ship" basic_ship false;
+    status_test "status sunk basic ship" (hit basic_ship 1 1) true;
+    status_test "status floating 2 long with one hit" (hit two_long 3 1) false;
+    status_test "status sunk 2 long" (hit (hit two_long 3 1) 3 2) true;
+    square_status_test "square stat floating 2 long" two_long (3, 1) false;
+    square_status_test "sqr stat hit 2 long" (hit two_long 3 1) (3, 1) true;
+    square_status_test "sqr stat non hit 2 long" (hit two_long 3 1) (3, 2) false;
+  ]
 
 let suite =
   "test suite for A2"
