@@ -1,0 +1,18 @@
+---
+group:
+  - name: Gloria Geng
+    netid: gcg46
+  - name: Alisha Lin
+    netid: al853
+  - name: Evelyn Si
+    netid: es828
+pm:
+  name: Owen Ralbovsky 
+  netid: oxr2
+publish: false
+title: "Battleship"
+git-repo: "https://github.coecis.cornell.edu/gcg46/3110-Final-Project"
+demo-video-url: ""
+# Write a short, attention-grabbing description of your project.
+desc: >
+  

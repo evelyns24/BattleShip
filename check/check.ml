@@ -64,9 +64,18 @@ end
 module StateCheck : StateSig = State
 
 module type AuthorSig = sig
-  val hours_worked : int
+  val hours_worked_gloria : int
+  val hours_worked_alisha : int
+
+  val hours_worked_evelyn : int
+  (** [hours_worked] is the number of hours Evelyn worked on this assignment. *)
 end
 
 module AuthorCheck : AuthorSig = Author
 
-let _ = if Author.hours_worked < 0 then exit 1
+let _ =
+  if
+    Author.hours_worked_gloria < 0
+    || Author.hours_worked_alisha < 0
+    || Author.hours_worked_evelyn < 0
+  then exit 1

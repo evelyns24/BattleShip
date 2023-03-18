@@ -27,5 +27,11 @@
 
  ************************************************************)
 
-val hours_worked : int
-(** [hours_worked] is the number of hours you worked on this assignment. *)
+val hours_worked_gloria : int
+(** [hours_worked] is the number of hours Gloria worked on this assignment. *)
+
+val hours_worked_alisha : int
+(** [hours_worked] is the number of hours Alisha worked on this assignment. *)
+
+val hours_worked_evelyn : int
+(** [hours_worked] is the number of hours Evelyn worked on this assignment. *)
