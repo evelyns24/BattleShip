@@ -4,6 +4,7 @@
 
 type t
 (**This abstract type of values representing a board square*)
+
 type b
 (**This abstract type represents the board*)
 
@@ -22,10 +23,16 @@ val get_width : b -> int
    board*)
 
 val check_collision : b -> bool
-(**[check_collision board] returns true if any ship is within a one square distance of any other ship.*)
+(**[check_collision board] returns true if any ship is within a one square
+   distance of any other ship.*)
+
+val update : b -> int -> int -> b
+(**[update board x y] returns a new board that responds to a hit at (x,y)*)
 
 val response : b -> int -> int -> bool
-(**[response board x y] returns true if the board square located at (x,y) is Full or Hit*)
+(**[response board x y] returns true if the board square located at (x,y) is
+   Full or Hit*)
 
-val score : b -> int
-(**[score board] returns the score associated with this board, essentially the other player's score*)
+val score : b -> int -> int
+(**[score board acc] returns the score associated with this board, essentially
+   the other player's score. This function is tail recursive*)

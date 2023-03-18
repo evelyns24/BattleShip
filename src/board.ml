@@ -16,7 +16,7 @@ type t = {
 type b = {
   height : int;
   width : int;
-  squares : s list list;
+  squares : t list;
 }
 
 exception Collide
@@ -28,19 +28,23 @@ let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
 let check_collision (board : b) : bool = raise (Failure "Alisha's problem")
 
-let response (board : b) (x : int) (y : int) : bool =
-  raise (Failure "Gloria's Problem")
-
-(**[score_one_row row acc] returns the score of one row by incrementing [acc]
-   when it reaches a square that is Hit. This function is tail recursive*)
-let rec score_one_row (row : s list) (acc : int) : int =
-  match row with
-  | [] -> acc
-  | h :: t -> if h = Hit then score_one_row t (acc + 1) else score_one_row t acc
-
-let rec score (board : b) : int =
+let rec response (board : b) (x : int) (y : int) : bool =
   match board.squares with
-  | [] -> 0
+  | [] -> false
   | h :: t ->
-      score_one_row h 0
-      + score { height = board.height; width = board.width; squares = t }
+      if h.x = x && h.y = y then h.state = Full || h.state = Hit
+      else
+        response { height = board.height; width = board.width; squares = t } x y
+
+let update (board : b) (x : int) (y : int) : b =
+  raise (Failure "unimplemented update")
+
+let rec score (board : b) (acc : int) : int =
+  match board.squares with
+  | [] -> acc
+  | h :: t ->
+      if h.state = Hit then
+        score
+          { height = board.height; width = board.width; squares = t }
+          (acc + 1)
+      else score { height = board.height; width = board.width; squares = t } acc

@@ -27,8 +27,9 @@ module type BoardSig = sig
   val get_height : b -> int
   val get_width : b -> int
   val check_collision : b -> bool
+  val update : b -> int -> int -> b
   val response : b -> int -> int -> bool
-  val score : b -> int
+  val score : b -> int -> int
 end
 
 module BoardCheck : BoardSig = Board

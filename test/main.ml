@@ -179,7 +179,7 @@ let ship_blackbox_tests =
   ]
 
 let suite =
-  "test suite for A2"
+  "test suite for BattleShip"
   >::: List.flatten [ ship_blackbox_tests; ship_glassbox_tests ]
 
 let _ = run_test_tt_main suite
