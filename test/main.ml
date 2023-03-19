@@ -144,7 +144,34 @@ let glass_rotate_test =
 (*Alisha write your hit and sunk tests here; when you want to test hit, just
   call hit repeatedly and check it against get_square_status test and sunk test.
   I did some in blackbox tests (do other ones)*)
-let glass_status_test = []
+let glass_status_test =
+  [
+    status_test "status of l-shaped ship before any hits" l_shaped false;
+    status_test "status l_shaped ship after 1 hit" (hit l_shaped 4 5) false;
+    square_status_test "square stat after 1 hit" (hit l_shaped 4 5) (4, 5) true;
+    status_test "status l_shaped ship after a missed shot" (hit l_shaped 1 1)
+      false;
+    square_status_test "square stat after 1 missed shot" (hit l_shaped 1 1)
+      (1, 1) false;
+    status_test "status l_shaped ship after 2 hits"
+      (hit (hit l_shaped 4 5) 3 5)
+      false;
+    square_status_test "square stat after 2 hits"
+      (hit (hit l_shaped 4 5) 3 5)
+      (3, 5) true;
+    status_test "status l_shaped ship after 3 hits"
+      (hit (hit (hit l_shaped 4 5) 3 5) 2 5)
+      false;
+    square_status_test "square stat after 3 hits"
+      (hit (hit (hit l_shaped 4 5) 3 5) 2 5)
+      (3, 5) true;
+    status_test "status l_shaped ship after 4 hits"
+      (hit (hit (hit (hit l_shaped 4 5) 3 5) 2 5) 2 4)
+      true;
+    square_status_test "square stat after 3 hits"
+      (hit (hit (hit (hit l_shaped 4 5) 3 5) 2 5) 2 4)
+      (2, 4) true;
+  ]
 
 let ship_glassbox_tests =
   List.flatten [ glass_rotate_test; glassbox_place; glass_status_test ]
@@ -169,11 +196,13 @@ let ship_blackbox_tests =
       [ (4, 5); (4, 4); (4, 3); (5, 3) ];
     test_rotate "rotate l about (3,5)" l_shaped (3, 5)
       [ (3, 4); (4, 4); (3, 5); (3, 6) ];
-<<<<<<< HEAD
     place_test "place basic_ship up 1 right 1" basic_ship 1 1 8 8 [ (2, 2) ];
-    ( "out of bound: negative value y's" >:: fun _ ->
+    ( "out of bound: negative value y's for two_long ship" >:: fun _ ->
       assert_raises OutOfBounds (fun () -> place two_long (-2) (-3) 8 8) );
-=======
+    place_test "place l-shaped ship down 4 and left 1" l_shaped (-1) (-4) 8 8
+      [ (1, 0); (1, 1); (2, 1); (3, 1) ];
+    ( "out of bound: x value too large for l_shaped ship" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> place l_shaped 7 2 8 8) );
     status_test "status floating basic ship" basic_ship false;
     status_test "status sunk basic ship" (hit basic_ship 1 1) true;
     status_test "status floating 2 long with one hit" (hit two_long 3 1) false;
@@ -181,7 +210,6 @@ let ship_blackbox_tests =
     square_status_test "square stat floating 2 long" two_long (3, 1) false;
     square_status_test "sqr stat hit 2 long" (hit two_long 3 1) (3, 1) true;
     square_status_test "sqr stat non hit 2 long" (hit two_long 3 1) (3, 2) false;
->>>>>>> 6b72033cb5104c051bf031a62fd450a4345b7e91
   ]
 
 let suite =
