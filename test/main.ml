@@ -126,6 +126,9 @@ let ship_blackbox_tests =
       [ (4, 5); (4, 4); (4, 3); (5, 3) ];
     test_rotate "rotate l about (3,5)" l_shaped (3, 5)
       [ (3, 4); (4, 4); (3, 5); (3, 6) ];
+    place_test "place basic_ship up 1 right 1" basic_ship 1 1 8 8 [ (2, 2) ];
+    ( "out of bound: negative value y's" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> place two_long (-2) (-3) 8 8) );
   ]
 
 let glass_rotate_test =
