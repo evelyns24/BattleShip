@@ -32,6 +32,17 @@ let rec location_h (hit_list : h list) : (int * int) list =
 let location (ship : t) : (int * int) list = location_h ship.hits
 let get_status (ship : t) : bool = ship.status
 
+(**[square_status_helper hlist a b] helper for finding the status of a square in
+   the ship*)
+let rec square_status_helper (hlist : h list) (a : int) (b : int) : bool =
+  match hlist with
+  | [] -> false
+  | h :: t -> if h.x = a && h.y = b then h.hit else square_status_helper t a b
+
+let get_square_status (ship : t) (point : int * int) : bool =
+  let x, y = point in
+  square_status_helper ship.hits x y
+
 (**[sunk_h hit_list] returns true if every single location in [hit_list] has
    been hit, representing that the ship has been sunk. false is returned
    otherwise*)

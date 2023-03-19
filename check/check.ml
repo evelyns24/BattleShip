@@ -8,6 +8,7 @@ module type ShipSig = sig
   val make : (int * int) list -> t
   val location : t -> (int * int) list
   val get_status : t -> bool
+  val get_square_status : t -> int * int -> bool
   val sunk : t -> t
   val hit : t -> int -> int -> t
   val place : t -> int -> int -> int -> int -> t
@@ -15,6 +16,23 @@ module type ShipSig = sig
 end
 
 module ShipCheck : ShipSig = Ship
+
+module type BoardSig = sig
+  type t
+  type b
+
+  exception Collide
+
+  val from_json : Yojson.Basic.t -> b
+  val get_height : b -> int
+  val get_width : b -> int
+  val check_collision : b -> bool
+  val update : b -> int -> int -> b
+  val response : b -> int -> int -> bool
+  val score : b -> int -> int
+end
+
+module BoardCheck : BoardSig = Board
 
 module type CommandSig = sig
   type object_phrase = string list
@@ -46,9 +64,18 @@ end
 module StateCheck : StateSig = State
 
 module type AuthorSig = sig
-  val hours_worked : int
+  val hours_worked_gloria : int
+  val hours_worked_alisha : int
+
+  val hours_worked_evelyn : int
+  (** [hours_worked] is the number of hours Evelyn worked on this assignment. *)
 end
 
 module AuthorCheck : AuthorSig = Author
 
-let _ = if Author.hours_worked < 0 then exit 1
+let _ =
+  if
+    Author.hours_worked_gloria < 0
+    || Author.hours_worked_alisha < 0
+    || Author.hours_worked_evelyn < 0
+  then exit 1

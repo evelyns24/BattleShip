@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "height": {
+      "type": "int"
+    },
+    "width": {
+      "type": "int"
+    },
+    "ships": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": "int"
+      }
+    }
+  },
+  "required": [
+    "height",
+    "width",
+    "ships"
+  ]
+}
