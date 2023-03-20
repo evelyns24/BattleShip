@@ -141,9 +141,6 @@ let glass_rotate_test =
       [ (4, 3); (4, 2); (4, 1) ];
   ]
 
-(*Alisha write your hit and sunk tests here; when you want to test hit, just
-  call hit repeatedly and check it against get_square_status test and sunk test.
-  I did some in blackbox tests (do other ones)*)
 let glass_status_test =
   [
     status_test "status of l-shaped ship before any hits" l_shaped false;
