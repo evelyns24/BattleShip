@@ -31,7 +31,14 @@ let data_dir_prefix = "data" ^ Filename.dir_sep
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
-  ANSITerminal.print_string [ ANSITerminal.red ] "\n\nWelcome to Battle Ship.\n";
+  ANSITerminal.print_string [ ANSITerminal.blue ]
+    "\n\nWelcome to Battle Ship.\n";
+  ANSITerminal.print_string [ ANSITerminal.red ]
+    "> '-' represents an empty square\n\
+     > 'S' represents a full square\n\
+     > 'X' represents a hit\n\
+     > 'M' represents a miss\n";
+  print_endline "When you enter a file, you will see the full board";
   print_endline "Please enter the name of the board file you want to load.\n";
   print_string "> ";
   match read_line () with
