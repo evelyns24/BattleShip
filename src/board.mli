@@ -22,6 +22,10 @@ val get_width : b -> int
 (**[get_width board] returns the width of the board. Requires board is a valid
    board*)
 
+val get_board : b -> int -> string list list
+(**[get_board board w] returns a list of string lists that represent the board
+   with rows of lenght w. Guarantees length of board is divisible by w*)
+
 val check_collision : b -> bool
 (**[check_collision board] returns true if any ship is within a one square
    distance of any other ship.*)
