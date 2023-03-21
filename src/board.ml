@@ -21,8 +21,36 @@ type b = {
 
 exception Collide
 
+let rec lst_to_int lst =
+  match lst with
+  | [] -> []
+  | h :: t ->
+      ( h |> to_list |> List.hd |> to_int,
+        h |> to_list |> List.tl |> List.hd |> to_int )
+      :: lst_to_int t
+
+(**[to_loc lst] returns a list of all of the ship coordinates*)
+let rec to_loc lst =
+  match lst with
+  | [] -> []
+  | h :: t ->
+      let coord = h |> member "location" |> to_list |> lst_to_int in
+      coord @ to_loc t
+
+let rec row ship_list r w id =
+  if id = w then []
+  else
+    let st = if List.mem (id, r) ship_list then Full else Empty in
+    { x = id; y = r; state = st } :: row ship_list r w (id + 1)
+
+let rec full_list ship_list h w id =
+  if id = h then [] else row ship_list id w 0 @ full_list ship_list h w (id + 1)
+
 let from_json (j : Yojson.Basic.t) : b =
-  raise (Failure "Unimplemented Evelyn's Problem")
+  let h = j |> member "height" |> to_int in
+  let w = j |> member "width" |> to_int in
+  let lst = j |> member "ships" |> to_list |> to_loc in
+  { height = h; width = w; squares = full_list lst h w 0 }
 
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
