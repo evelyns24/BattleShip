@@ -96,7 +96,7 @@ let rec after_w lst w =
    \[1;2;3;4;5;6\] 2 returns \[\[1;2\]; \[3;4\]; \[5;6\]\]*)
 let rec dimensionalize (lst : 'a list) (w : int) : 'a list list =
   if List.length lst = w then [ first_w lst w ]
-  else [ first_w lst w ] @ dimensionalize (after_w lst w) w
+  else dimensionalize (after_w lst w) w @ [ first_w lst w ]
 
 let rec get_board (board : b) (w : int) : string list list =
   let string_list = to_string_list board.squares in
