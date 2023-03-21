@@ -14,5 +14,8 @@ title: "Battleship"
 git-repo: "https://github.coecis.cornell.edu/gcg46/3110-Final-Project"
 demo-video-url: ""
 # Write a short, attention-grabbing description of your project.
-desc: >
+desc: A strategic, deduction-based game that involves a player and a built-in AI or two players. 
+The player(s) and/or AI will take turns guessing the positioning of the the opponents' battleships on the grid board provided.
+Once every grid of a ship has been hit, the ship has been sunk, and the respective side loses a warship. 
+The side that has all of their ships sunk first is declared the loser.
   
