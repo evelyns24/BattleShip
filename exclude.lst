@@ -1,4 +1,7 @@
 _build/*
-tutorial/*
 .DS_Store
 *.zip
+To-Do
+pitches
+teamwork_contract
+*.YAML
