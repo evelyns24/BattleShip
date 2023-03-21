@@ -1,0 +1,22 @@
+Instructions for how to run this project.
+
+First install ANSITerminal if not installed already.
+  - To do this, run opam install ANSITerminal in the terminal.
+
+Next, run dune build to compile the project. 
+From the terminal: 
+  make test: this will execute our OUnit test cases.
+  make play: this will execute bin/main.ml. At this stage, you will see a prompt 
+             to run a board file. 
+             input complex to see a sample 16 by 16 board
+             input basic to see a sample 3 by 3 board
+  make check: this will execute check.sh, which checks for
+              1. OPAM is available
+              2. OPAM version 2.1.2 is installed
+              3. OCaml compiler version 4.14.0 is active
+              4. OUnit version 2.2.6 is active
+              5. Required definitions are present
+              6. Code compiles
+  make clean: this removes the _dune directory
+  make doc: this builds HTML documentation with Odoc located at 
+            _build/default/_doc/_html/Game/Game/index.html
