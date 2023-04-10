@@ -53,11 +53,11 @@ let data_dir_prefix = "data" ^ Filename.dir_sep
 (*let lonely = Yojson.Basic.from_file (data_dir_prefix ^ "lonely_room.json") let
   ho = Yojson.Basic.from_file (data_dir_prefix ^ "ho_plaza.json")*)
 
-let basic_ship = make [ (1, 1) ]
-let two_long = make [ (3, 1); (3, 2) ]
-let three_long = make [ (2, 2); (2, 3); (2, 1) ]
-let four_long = make [ (6, 4); (5, 4); (4, 4); (3, 4) ]
-let l_shaped = make [ (2, 4); (2, 5); (3, 5); (4, 5) ]
+let basic_ship = make "submarine" [ (1, 1) ]
+let two_long = make "frigate" [ (3, 1); (3, 2) ]
+let three_long = make "cruiser" [ (2, 2); (2, 3); (2, 1) ]
+let four_long = make "destroyer" [ (6, 4); (5, 4); (4, 4); (3, 4) ]
+let l_shaped = make "aircraft carrier" [ (2, 4); (2, 5); (3, 5); (4, 5) ]
 
 (**[test_location name ship output] builds an OUnit test named [name] that tests
    whether or not [location ship] returns the expected output [output]*)

@@ -17,6 +17,7 @@ type b = {
   height : int;
   width : int;
   squares : t list;
+  ships : Ship.t list;
 }
 
 exception Collide
@@ -50,7 +51,7 @@ let from_json (j : Yojson.Basic.t) : b =
   let h = j |> member "height" |> to_int in
   let w = j |> member "width" |> to_int in
   let lst = j |> member "ships" |> to_list |> to_loc in
-  { height = h; width = w; squares = full_list lst h w 0 }
+  { height = h; width = w; squares = full_list lst h w 0; ships = [] }
 
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
@@ -108,7 +109,14 @@ let rec response (board : b) (x : int) (y : int) : bool =
   | h :: t ->
       if h.x = x && h.y = y then h.state = Full || h.state = Hit
       else
-        response { height = board.height; width = board.width; squares = t } x y
+        response
+          {
+            height = board.height;
+            width = board.width;
+            squares = t;
+            ships = board.ships;
+          }
+          x y
 
 let update (board : b) (x : int) (y : int) : b =
   raise (Failure "unimplemented update")
@@ -119,6 +127,19 @@ let rec score (board : b) (acc : int) : int =
   | h :: t ->
       if h.state = Hit then
         score
-          { height = board.height; width = board.width; squares = t }
+          {
+            height = board.height;
+            width = board.width;
+            squares = t;
+            ships = board.ships;
+          }
           (acc + 1)
-      else score { height = board.height; width = board.width; squares = t } acc
+      else
+        score
+          {
+            height = board.height;
+            width = board.width;
+            squares = t;
+            ships = board.ships;
+          }
+          acc

@@ -5,7 +5,7 @@ module type ShipSig = sig
 
   exception OutOfBounds
 
-  val make : (int * int) list -> t
+  val make : string -> (int * int) list -> t
   val location : t -> (int * int) list
   val get_status : t -> bool
   val get_square_status : t -> int * int -> bool

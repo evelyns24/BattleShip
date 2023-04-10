@@ -8,10 +8,18 @@
       "type": "int"
     },
     "ships": {
-      "type": "array",
-      "items": {
-        "type": "array",
-        "items": "int"
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "location": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": "int"
+          }
+        }
       }
     }
   },

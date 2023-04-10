@@ -11,7 +11,7 @@ type t
 exception OutOfBounds
 (**Raise when a portion of the ship is out of bounds*)
 
-val make : (int * int) list -> t
+val make : string -> (int * int) list -> t
 (**[make loc] takes in a list of points and creates a ship*)
 
 val location : t -> (int * int) list

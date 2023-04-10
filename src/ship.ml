@@ -7,6 +7,7 @@ type h = {
 }
 
 type t = {
+  name : string;
   hits : h list;
   status : bool;
 }
@@ -20,7 +21,8 @@ let rec make_h (points : (int * int) list) : h list =
   | [] -> []
   | (a, b) :: t -> { x = a; y = b; hit = false } :: make_h t
 
-let make (loc : (int * int) list) = { hits = make_h loc; status = false }
+let make (name : string) (loc : (int * int) list) =
+  { name; hits = make_h loc; status = false }
 
 (**[location_h hit_list] creates a list of (int * int) from [hit_list],
    representing all of the coordinates that a ship covers on the board*)
@@ -52,8 +54,8 @@ let rec sunk_h (hit_list : h list) : bool =
   | h :: t -> h.hit && sunk_h t
 
 let sunk (ship : t) : t =
-  if sunk_h ship.hits then { hits = ship.hits; status = true }
-  else { hits = ship.hits; status = false }
+  if sunk_h ship.hits then { name = ship.name; hits = ship.hits; status = true }
+  else { name = ship.name; hits = ship.hits; status = false }
 
 (**[hit_h hit_list x y] checks which position (or h) of the [h_list] is hit with
    [x] and [y] coordinates and constructs a new h list*)
@@ -65,7 +67,7 @@ let rec hit_h (hit_list : h list) (x : int) (y : int) : h list =
       else h :: hit_h t x y
 
 let hit (ship : t) (x : int) (y : int) : t =
-  { hits = hit_h ship.hits x y; status = ship.status }
+  { name = ship.name; hits = hit_h ship.hits x y; status = ship.status }
 
 (** [h_list lst v h height width] returns an h list where v is added to a.x and
     h is added to a.y for all a in lst. Raises OutOfBounds if the new coords are
@@ -81,7 +83,7 @@ let rec h_list lst v h height width =
 
 let rec place (ship : t) (x : int) (y : int) (height : int) (width : int) : t =
   let lst = h_list ship.hits x y height width in
-  { hits = lst; status = ship.status }
+  { name = ship.name; hits = lst; status = ship.status }
 
 (**[rotate_list h_lst c_x c_y] takes in an h list [h] that rotates the (x,y)
    portion of the h about the point (c_x, c_y) for every h in the h list*)
@@ -95,8 +97,4 @@ let rec rotate_list (h_lst : h list) (c_x : int) (c_y : int) : h list =
 let rotate (point : int * int) (ship : t) : t =
   let x, y = point in
   let rotated_lst = rotate_list ship.hits x y in
-  { hits = rotated_lst; status = ship.status }
-
-(*(** [remains ship] returns how much of the ship is left based on the number of
-  locations hit. This is a helper to [sunk ship]*) let remains : t = raise
-  (Failure "Unimplemented remains")*)
+  { name = ship.name; hits = rotated_lst; status = ship.status }

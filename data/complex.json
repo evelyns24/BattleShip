@@ -3,6 +3,7 @@
   "width": 16,
   "ships": [
     {
+      "name": "Aircraft Carrier 1",
       "location": [
         [
           1,
@@ -27,6 +28,7 @@
       ]
     },
     {
+      "name": "Aircraft Carrier 2",
       "location": [
         [
           5,
@@ -51,6 +53,7 @@
       ]
     },
     {
+      "name": "Destroyer",
       "location": [
         [
           4,
@@ -71,6 +74,7 @@
       ]
     },
     {
+      "name": "Submarine 1",
       "location": [
         [
           11,
@@ -79,6 +83,7 @@
       ]
     },
     {
+      "name": "Cruiser",
       "location": [
         [
           10,
@@ -99,6 +104,7 @@
       ]
     },
     {
+      "name": "Submarine 2",
       "location": [
         [
           1,
@@ -107,6 +113,7 @@
       ]
     },
     {
+      "name": "Frigate",
       "location": [
         [
           13,
