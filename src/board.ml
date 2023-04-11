@@ -38,6 +38,15 @@ let rec to_loc lst =
       let coord = h |> member "location" |> to_list |> lst_to_int in
       coord @ to_loc t
 
+(** [to_ship lst] returns a list of ship **)
+let rec to_ship lst =
+  match lst with
+  | [] -> []
+  | h :: t ->
+      let n = h |> member "name" |> to_string in
+      let coord = h |> member "location" |> to_list |> lst_to_int in
+      make n coord :: to_ship t
+
 let rec row ship_list r w id =
   if id = w then []
   else
@@ -51,7 +60,8 @@ let from_json (j : Yojson.Basic.t) : b =
   let h = j |> member "height" |> to_int in
   let w = j |> member "width" |> to_int in
   let lst = j |> member "ships" |> to_list |> to_loc in
-  { height = h; width = w; squares = full_list lst h w 0; ships = [] }
+  let s = j |> member "ships" |> to_list |> to_ship in
+  { height = h; width = w; squares = full_list lst h w 0; ships = s }
 
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width

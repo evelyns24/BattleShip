@@ -5,6 +5,9 @@
  * It is part of the interface the course staff will use to test your
  * submission.
  **********************************************************************)
+type coord = int * int
+(** the first element of this list is the x coord and the second is the y coord.
+    Must be length 2 **)
 
 type object_phrase = string list
 (** The type [object_phrase] represents the object phrase that can be part of a
@@ -29,7 +32,15 @@ type object_phrase = string list
     verb and possibly an object phrase. Invariant: the [object_phrase] carried
     by [Go] must not be empty. *)
 type command =
-  | Go of object_phrase
+  | Move of {
+      name : string;
+      coordinate : coord;
+    }
+  | Rotate of {
+      name : string;
+      coordinate : coord;
+    }
+  | Hit of coord
   | Quit
 
 exception Empty
