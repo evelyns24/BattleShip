@@ -10,7 +10,8 @@ type s =
 type t = {
   x : int;
   y : int;
-  state : s;
+  mutable state : s;
+  name : string;
 }
 
 type b = {
@@ -21,6 +22,7 @@ type b = {
 }
 
 exception Collide
+exception ShipNotFound
 
 let rec lst_to_int lst =
   match lst with
@@ -47,11 +49,19 @@ let rec to_ship lst =
       let coord = h |> member "location" |> to_list |> lst_to_int in
       make n coord :: to_ship t
 
+(**[row ship_list r w id] returns a t list that represents the [r]th row, with
+   width [w] and [ship_list], the list of ship locations*)
 let rec row ship_list r w id =
   if id = w then []
   else
     let st = if List.mem (id, r) ship_list then Full else Empty in
-    { x = id; y = r; state = st } :: row ship_list r w (id + 1)
+    let name = (let rec identify_ship b r c lst =
+      match b.ships with
+      | [] -> "none"
+      | h :: t ->
+          if List.mem (r, c) (location h) then get_name h else identify_ship b r c t)
+
+    { x = id; y = r; state = st; name = name } :: row ship_list r w (id + 1)
 
 let rec full_list ship_list h w id =
   if id = h then [] else row ship_list id w 0 @ full_list ship_list h w (id + 1)
@@ -62,6 +72,18 @@ let from_json (j : Yojson.Basic.t) : b =
   let lst = j |> member "ships" |> to_list |> to_loc in
   let s = j |> member "ships" |> to_list |> to_ship in
   { height = h; width = w; squares = full_list lst h w 0; ships = s }
+
+(**[identify_ship b r c lst] returns the name of the ship located at (r,c), or
+   raises ShipNotFound*)
+let rec identify_ship b r c lst =
+  match b.ships with
+  | [] -> raise ShipNotFound
+  | h :: t ->
+      if List.mem (r, c) (location h) then get_name h else identify_ship b r c t
+
+let rec name_squares b =
+  match b.squares with
+
 
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
@@ -127,6 +149,44 @@ let rec response (board : b) (x : int) (y : int) : bool =
             ships = board.ships;
           }
           x y
+
+let rec get_ship (board : b) (ship_name : string) =
+  match board.ships with
+  | [] -> raise (Failure "Ship not found")
+  | h :: t ->
+      if get_name h = ship_name then h
+      else
+        get_ship
+          {
+            height = board.height;
+            width = board.width;
+            squares = board.squares;
+            ships = t;
+          }
+          ship_name
+
+let update_squares squares ship = raise (Failure "unimplemented")
+(*Ideas: first remove the original ship from squares. Then add in the new
+  square*)
+
+let move_ship (board : b) (ship_name : string) (rotate : bool) (x : int)
+    (y : int) : b =
+  if rotate then
+    let ship_of_interest = get_ship board ship_name in
+    let new_ship = Ship.rotate (x, y) ship_of_interest in
+    {
+      height = board.height;
+      width = board.width;
+      squares = update_squares board.squares new_ship;
+      ships = board.ships;
+    }
+  else
+    {
+      height = board.height;
+      width = board.width;
+      squares = board.squares;
+      ships = board.ships;
+    }
 
 let update (board : b) (x : int) (y : int) : b =
   raise (Failure "unimplemented update")
