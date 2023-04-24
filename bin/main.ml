@@ -37,6 +37,7 @@ let main () =
     "> '-' represents an empty square\n\
      > 'S' represents a full square\n\
      > 'X' represents a hit\n\
+<<<<<<< Updated upstream
      > 'M' represents a miss \n";
   print_endline
     "If you see the ship's color on your board, then you have that ship in \
@@ -48,6 +49,14 @@ let main () =
   ANSITerminal.print_string [ ANSITerminal.cyan ] "> Submarine_2 \n";
   ANSITerminal.print_string [ ANSITerminal.green ] "> Cruiser \n";
   ANSITerminal.print_string [ ANSITerminal.yellow ] "> Frigate \n";
+=======
+     > 'M' represents a miss\n";
+  ANSITerminal.print_string [ ANSITerminal.red ]
+    "> '-' represents an empty square\n\
+     > 'S' represents a full square\n\
+     > 'X' represents a hit\n\
+     > 'M' represents a miss\n";
+>>>>>>> Stashed changes
   print_endline "When you enter a file, you will see the full board";
   print_endline "Please enter the name of the board file you want to load.\n";
   print_string "> ";

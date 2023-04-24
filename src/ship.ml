@@ -33,7 +33,7 @@ let rec location_h (hit_list : h list) : (int * int) list =
 
 let location (ship : t) : (int * int) list = location_h ship.hits
 let get_status (ship : t) : bool = ship.status
-let get_name (ship : t) = ship.name
+let get_name (ship : t) : string = ship.name
 
 (**[square_status_helper hlist a b] helper for finding the status of a square in
    the ship*)

@@ -11,7 +11,7 @@ type t = {
   x : int;
   y : int;
   mutable state : s;
-  name : string;
+  name : string;  (** "none" if this square is Empty *)
 }
 
 type b = {
@@ -37,10 +37,10 @@ let rec to_loc lst =
   match lst with
   | [] -> []
   | h :: t ->
-      let coord = h |> member "location" |> to_list |> lst_to_int in
+      let coord = location h in
       coord @ to_loc t
 
-(** [to_ship lst] returns a list of ship **)
+(** [to_ship lst] returns a list of ships **)
 let rec to_ship lst =
   match lst with
   | [] -> []
@@ -49,19 +49,22 @@ let rec to_ship lst =
       let coord = h |> member "location" |> to_list |> lst_to_int in
       make n coord :: to_ship t
 
+(**[identify_ship b r c lst] returns the name of the ship located at (r,c), or
+   raises ShipNotFound. [lst] is the list of all ships on the board*)
+let rec identify_ship r c lst =
+  match lst with
+  | [] -> raise ShipNotFound
+  | h :: t ->
+      if List.mem (r, c) (location h) then get_name h else identify_ship r c t
+
 (**[row ship_list r w id] returns a t list that represents the [r]th row, with
-   width [w] and [ship_list], the list of ship locations*)
+   width [w] and [ship_list], the list of ships*)
 let rec row ship_list r w id =
   if id = w then []
   else
-    let st = if List.mem (id, r) ship_list then Full else Empty in
-    let name = (let rec identify_ship b r c lst =
-      match b.ships with
-      | [] -> "none"
-      | h :: t ->
-          if List.mem (r, c) (location h) then get_name h else identify_ship b r c t)
-
-    { x = id; y = r; state = st; name = name } :: row ship_list r w (id + 1)
+    let st = if List.mem (id, r) (to_loc ship_list) then Full else Empty in
+    let n = try identify_ship r id ship_list with ShipNotFound -> "none" in
+    { x = id; y = r; state = st; name = n } :: row ship_list r w (id + 1)
 
 let rec full_list ship_list h w id =
   if id = h then [] else row ship_list id w 0 @ full_list ship_list h w (id + 1)
@@ -69,21 +72,13 @@ let rec full_list ship_list h w id =
 let from_json (j : Yojson.Basic.t) : b =
   let h = j |> member "height" |> to_int in
   let w = j |> member "width" |> to_int in
-  let lst = j |> member "ships" |> to_list |> to_loc in
-  let s = j |> member "ships" |> to_list |> to_ship in
-  { height = h; width = w; squares = full_list lst h w 0; ships = s }
-
-(**[identify_ship b r c lst] returns the name of the ship located at (r,c), or
-   raises ShipNotFound*)
-let rec identify_ship b r c lst =
-  match b.ships with
-  | [] -> raise ShipNotFound
-  | h :: t ->
-      if List.mem (r, c) (location h) then get_name h else identify_ship b r c t
-
-let rec name_squares b =
-  match b.squares with
-
+  let ship_lst = j |> member "ships" |> to_list |> to_ship in
+  {
+    height = h;
+    width = w;
+    squares = full_list ship_lst h w 0;
+    ships = ship_lst;
+  }
 
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
