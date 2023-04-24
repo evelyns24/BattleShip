@@ -63,7 +63,7 @@ let rec row ship_list r w id =
   if id = w then []
   else
     let st = if List.mem (id, r) (to_loc ship_list) then Full else Empty in
-    let n = try identify_ship r id ship_list with ShipNotFound -> "none" in
+    let n = try identify_ship id r ship_list with ShipNotFound -> "none" in
     { x = id; y = r; state = st; name = n } :: row ship_list r w (id + 1)
 
 let rec full_list ship_list h w id =
