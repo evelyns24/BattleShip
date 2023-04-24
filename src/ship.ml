@@ -1,11 +1,13 @@
 open Yojson.Basic.Util
 
+(*each individual square*)
 type h = {
   x : int;
   y : int;
   hit : bool;
 }
 
+(*the entire ship. [hits] is a list of all of the squares*)
 type t = {
   name : string;
   hits : h list;

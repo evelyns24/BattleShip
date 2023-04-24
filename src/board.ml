@@ -82,7 +82,6 @@ let from_json (j : Yojson.Basic.t) : b =
 
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
-let check_collision (board : b) : bool = raise (Failure "Alisha's problem")
 
 (**[from_state state] takes state s and turns it into a string according to:
    Empty -> "-"; Full -> "S"; Hit -> "X"; Miss -> "M" *)
@@ -182,6 +181,41 @@ let move_ship (board : b) (ship_name : string) (rotate : bool) (x : int)
       squares = board.squares;
       ships = board.ships;
     }
+
+(* returns false if there is a collision on a specific coordinate, true
+   otherwise *)
+let coord_check (board : b) (x : int) (y : int) (loc : (int * int) list) : bool
+    =
+  if response board (x - 1) (y + 1) && not (List.mem (x - 1, y + 1) loc) then
+    false
+  else if response board x (y + 1) && not (List.mem (x, y + 1) loc) then false
+  else if response board (x + 1) (y + 1) && not (List.mem (x + 1, y + 1) loc)
+  then false
+  else if response board (x + 1) y && not (List.mem (x + 1, y) loc) then false
+  else if response board (x + 1) (y - 1) && not (List.mem (x + 1, y - 1) loc)
+  then false
+  else if response board x (y - 1) && not (List.mem (x, y - 1) loc) then false
+  else if response board (x - 1) (y - 1) && not (List.mem (x - 1, y - 1) loc)
+  then false
+  else if response board (x - 1) y && not (List.mem (x - 1, y) loc) then false
+  else true
+
+(* returns false if there is a collision on a ship, true otherwise *)
+let rec collision_h (board : b) (s : Ship.t) (loc : (int * int) list) : bool =
+  match loc with
+  | [] -> true
+  | (a, b) :: t ->
+      coord_check board a b (Ship.location s) && collision_h board s t
+
+(* checks all of the ships on the board for collisions. returns false if there
+   is a collision, true otherwise *)
+let rec check_collision_h (all_ships : Ship.t list) (board : b) =
+  match all_ships with
+  | [] -> true
+  | h :: t -> collision_h board h (Ship.location h) && check_collision_h t board
+
+let rec check_collision (board : b) : bool =
+  not (check_collision_h board.ships board)
 
 let update (board : b) (x : int) (y : int) : b =
   raise (Failure "unimplemented update")
