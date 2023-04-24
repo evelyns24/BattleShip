@@ -40,7 +40,6 @@ module BoardCheck : BoardSig = Board
 module type CommandSig = sig
   type coord = int * int
   type object_phrase = string list
-  type coord = int * int
 
   type command =
     | Move of {
