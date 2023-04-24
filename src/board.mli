@@ -30,6 +30,12 @@ val check_collision : b -> bool
 (**[check_collision board] returns true if any ship is within a one square
    distance of any other ship.*)
 
+val move_ship : b -> string -> bool -> int -> int -> b
+(**[move_ship board ship_name rotate x y] returns a new board that responds
+   moving the ship named [ship_name]. If [rotate] is true, then the ship is
+   rotated about [(x, y)]. If [rotate] is false, then the ship is moved
+   horizontally by [x] and vertically by [y]*)
+
 val update : b -> int -> int -> b
 (**[update board x y] returns a new board that responds to a hit at (x,y)*)
 

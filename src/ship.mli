@@ -22,6 +22,9 @@ val get_status : t -> bool
 (** [get_status ship] returns the status for the ship. If it sank, then [true],
     else [false]*)
 
+val get_name : t -> string
+(** [get_name ship] returns the name of the ship. *)
+
 val get_square_status : t -> int * int -> bool
 (**[get_square_state ship point] returns the status of the point on that ship.
    Requires point is on the ship*)

@@ -8,6 +8,7 @@ module type ShipSig = sig
   val make : string -> (int * int) list -> t
   val location : t -> (int * int) list
   val get_status : t -> bool
+  val get_name : t -> string
   val get_square_status : t -> int * int -> bool
   val sunk : t -> t
   val hit : t -> int -> int -> t
@@ -28,6 +29,7 @@ module type BoardSig = sig
   val get_width : b -> int
   val get_board : b -> int -> string list list
   val check_collision : b -> bool
+  val move_ship : b -> string -> bool -> int -> int -> b
   val update : b -> int -> int -> b
   val response : b -> int -> int -> bool
   val score : b -> int -> int
@@ -37,9 +39,18 @@ module BoardCheck : BoardSig = Board
 
 module type CommandSig = sig
   type object_phrase = string list
+  type coord = int * int
 
   type command =
-    | Go of object_phrase
+    | Move of {
+        name : string;
+        coordinate : coord;
+      }
+    | Rotate of {
+        name : string;
+        coordinate : coord;
+      }
+    | Hit of coord
     | Quit
 
   exception Empty
