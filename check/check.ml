@@ -27,7 +27,7 @@ module type BoardSig = sig
   val from_json : Yojson.Basic.t -> b
   val get_height : b -> int
   val get_width : b -> int
-  val get_board : b -> int -> string list list
+  val get_board : b -> int -> (string * string) list list
   val check_collision : b -> bool
   val move_ship : b -> string -> bool -> int -> int -> b
   val update : b -> int -> int -> b

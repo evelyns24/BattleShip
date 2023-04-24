@@ -93,11 +93,11 @@ let from_state (state : s) : string =
   | Hit -> "X"
   | Miss -> "M"
 
-(**[to_string_list lst] takes lst, a t list, and turns it into a string list,
-   using from_state*)
-let rec to_string_list = function
+(**[to_string_list lst] takes lst, a t list, and turns it into a (string,
+   string) list, using from_state*)
+let rec to_pair_list = function
   | [] -> []
-  | h :: t -> from_state h.state :: to_string_list t
+  | h :: t -> (from_state h.state, h.name) :: to_pair_list t
 
 (**[first_w lst w] takes a lst and returns the first w elements. Example:
    first_w \[1;9;7;3\] 2 returns \[1;9\]*)
@@ -126,8 +126,8 @@ let rec dimensionalize (lst : 'a list) (w : int) : 'a list list =
   if List.length lst = w then [ first_w lst w ]
   else dimensionalize (after_w lst w) w @ [ first_w lst w ]
 
-let rec get_board (board : b) (w : int) : string list list =
-  let string_list = to_string_list board.squares in
+let rec get_board (board : b) (w : int) =
+  let string_list = to_pair_list board.squares in
   dimensionalize string_list w
 
 let rec response (board : b) (x : int) (y : int) : bool =

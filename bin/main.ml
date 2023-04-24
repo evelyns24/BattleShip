@@ -6,17 +6,33 @@ open Command
 
 (**[string_of_row row] takes a string list, [row] and turns it into a string.
    Requires [row] is a string list*)
-let rec string_of_row (row : string list) =
+let rec print_row (row : (string * string) list) =
   match row with
-  | [] -> "\n"
-  | h :: t -> h ^ string_of_row t
+  | [] -> print_string "\n"
+  | (symbol, name) :: t ->
+      if name = "none" then print_string symbol
+      else if name = "Aircraft_Carrier_1" then
+        ANSITerminal.print_string [ ANSITerminal.white ] symbol
+      else if name = "Aircraft_Carrier_2" then
+        ANSITerminal.print_string [ ANSITerminal.blue ] symbol
+      else if name = "Destroyer" then
+        ANSITerminal.print_string [ ANSITerminal.magenta ] symbol
+      else if name = "Submarine_1" then
+        ANSITerminal.print_string [ ANSITerminal.red ] symbol
+      else if name = "Submarine_2" then
+        ANSITerminal.print_string [ ANSITerminal.cyan ] symbol
+      else if name = "Cruiser" then
+        ANSITerminal.print_string [ ANSITerminal.green ] symbol
+      else if name = "Frigate" then
+        ANSITerminal.print_string [ ANSITerminal.yellow ] symbol;
+      print_row t
 
 (**[print_board board] prints the board. Requires [board] is a string list list.*)
-let rec print_board (board : string list list) =
+let rec print_board (board : (string * string) list list) =
   match board with
   | [] -> print_string "\n"
   | h :: t ->
-      print_string (string_of_row h);
+      print_row h;
       print_board t
 
 (** [play_game f] starts the battle ship game in file [f]. *)
