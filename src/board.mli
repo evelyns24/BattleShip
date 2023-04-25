@@ -33,6 +33,13 @@ val check_collision : b -> bool
 val update : b -> int -> int -> b
 (**[update board x y] returns a new board that responds to a hit at (x,y)*)
 
+val move_ship : b -> string -> bool -> int -> int -> b
+(**[move_ship board ship_name rotate x y] returns a new board given that the
+   ship named [ship_name] has been rotated (if [rotate] is true)
+   counterclockwise be 90 about the point [x,y], else if [rotate] is false has
+   been moved to the right by [x] and up by [y]. If the ship is moved out of
+   bounds, the original board is returned*)
+
 val response : b -> int -> int -> bool
 (**[response board x y] returns true if the board square located at (x,y) is
    Full or Hit*)

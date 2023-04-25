@@ -58,7 +58,7 @@ let main () =
     "If you see the ship's color on your board, then you have that ship in \
      your disposal. Here are the possible ships: ";
 
-  ANSITerminal.print_string [ ANSITerminal.white ] "> Aircraft_Carrier_1 \n";
+  ANSITerminal.print_string [ ANSITerminal.default ] "> Aircraft_Carrier_1 \n";
   ANSITerminal.print_string [ ANSITerminal.blue ] "> Aircraft_Carrier_2 \n";
   ANSITerminal.print_string [ ANSITerminal.magenta ] "> Destroyer \n";
   ANSITerminal.print_string [ ANSITerminal.red ] "> Submarine_1 \n";

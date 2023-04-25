@@ -10,7 +10,7 @@ type s =
 type t = {
   x : int;
   y : int;
-  mutable state : s;
+  state : s;
   name : string;  (** "none" if this square is Empty *)
 }
 
@@ -163,16 +163,26 @@ let update_squares squares ship = raise (Failure "unimplemented")
 (*Ideas: first remove the original ship from squares. Then add in the new
   square*)
 
+(**[remove_ship ship_list ship] returns a list of ships having removed [ship]*)
+let rec remove_ship (ship_list : Ship.t list) (ship : Ship.t) =
+  match ship_list with
+  | [] -> []
+  | h :: t ->
+      if Ship.get_name h = Ship.get_name ship then t
+      else h :: remove_ship t ship
+
 let move_ship (board : b) (ship_name : string) (rotate : bool) (x : int)
     (y : int) : b =
   if rotate then
     let ship_of_interest = get_ship board ship_name in
-    let new_ship = Ship.rotate (x, y) ship_of_interest in
+    let new_ship =
+      Ship.rotate (x, y) ship_of_interest board.height board.width
+    in
     {
       height = board.height;
       width = board.width;
       squares = update_squares board.squares new_ship;
-      ships = board.ships;
+      ships = new_ship :: remove_ship board.ships ship_of_interest;
     }
   else
     {
