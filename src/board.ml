@@ -167,27 +167,17 @@ let rec remove_ship (ship_list : Ship.t list) (ship : Ship.t) =
       if Ship.get_name h = Ship.get_name ship then t
       else h :: remove_ship t ship
 
-let move_ship (board : b) (ship_name : string) (rotate : bool) (x : int)
-    (y : int) : b =
-  if rotate then
-    let ship_of_interest = get_ship board ship_name in
-    let new_ship =
-      Ship.rotate (x, y) ship_of_interest board.height board.width
-    in
-    let new_ship_list = new_ship :: remove_ship board.ships ship_of_interest in
-    {
-      height = board.height;
-      width = board.width;
-      squares = full_list new_ship_list board.height board.width 0;
-      ships = new_ship_list;
-    }
-  else
-    {
-      height = board.height;
-      width = board.width;
-      squares = board.squares;
-      ships = board.ships;
-    }
+let move_ship (board : b) (ship_name : string) move_func (x : int) (y : int) : b
+    =
+  let ship_of_interest = get_ship board ship_name in
+  let new_ship = move_func ship_of_interest x y board.height board.width in
+  let new_ship_list = new_ship :: remove_ship board.ships ship_of_interest in
+  {
+    height = board.height;
+    width = board.width;
+    squares = full_list new_ship_list board.height board.width 0;
+    ships = new_ship_list;
+  }
 
 (* returns false if there is a collision on a specific coordinate, true
    otherwise *)
@@ -225,7 +215,13 @@ let rec check_collision (board : b) : bool =
   not (check_collision_h board.ships board)
 
 let update (board : b) (x : int) (y : int) : b =
-  raise (Failure "unimplemented update")
+  let target_square = List.nth board.squares (((y - 1) * board.width) + x) in
+  let new_square =
+    if target_square.state = Full || target_square.state = Hit then
+      { x; y; state = Hit; name = target_square.name }
+    else { x; y; state = Miss; name = target_square.name }
+  in
+  failwith "unimplemented"
 
 let rec score (board : b) (acc : int) : int =
   match board.squares with

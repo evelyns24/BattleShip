@@ -65,11 +65,10 @@ let test_location (name : string) (ship : t) (output : (int * int) list) =
 (**[test_rotate name ship point output] builds an OUnit test named [name] that
    tests whether or not [rotate point ship] rotates the ship correctly by
    comparing the location after the rotatation with the expected output [output]*)
-let test_rotate (name : string) (ship : t) (point : int * int)
-    (output : (int * int) list) =
+let test_rotate (name : string) (ship : t) x y (output : (int * int) list) =
   name >:: fun _ ->
   assert_equal output
-    (rotate point ship 8 8 |> location)
+    (rotate ship x y 8 8 |> location)
     ~cmp:cmp_set_like_lists ~printer:(pp_list pp_coord)
 
 (** [place_test name ship x y height width expected_output] constructs an OUnit
@@ -119,24 +118,21 @@ let glassbox_place =
 
 let glass_rotate_test =
   [
-    test_rotate "rotate basic 1x" basic_ship (1, 1) [ (1, 1) ];
-    test_rotate "rotate basic 2x"
-      (rotate (1, 1) basic_ship 8 8)
-      (1, 1)
-      [ (1, 1) ];
-    test_rotate "rotate two 1x" two_long (3, 1) [ (3, 1); (2, 1) ];
+    test_rotate "rotate basic 1x" basic_ship 1 1 [ (1, 1) ];
+    test_rotate "rotate basic 2x" (rotate basic_ship 1 1 8 8) 1 1 [ (1, 1) ];
+    test_rotate "rotate two 1x" two_long 3 1 [ (3, 1); (2, 1) ];
     test_rotate "rotate two 3x"
-      (rotate (3, 1) (rotate (3, 1) two_long 8 8) 8 8)
-      (3, 1)
+      (rotate (rotate two_long 3 1 8 8) 3 1 8 8)
+      3 1
       [ (3, 1); (4, 1) ];
-    test_rotate "rotate L 1x" l_shaped (3, 5) [ (3, 6); (3, 5); (3, 4); (4, 4) ];
+    test_rotate "rotate L 1x" l_shaped 3 5 [ (3, 6); (3, 5); (3, 4); (4, 4) ];
     test_rotate "rotate L 4x"
-      (rotate (3, 5) (rotate (3, 5) (rotate (3, 5) l_shaped 8 8) 8 8) 8 8)
-      (3, 5)
+      (rotate (rotate (rotate l_shaped 3 5 8 8) 3 5 8 8) 3 5 8 8)
+      3 5
       [ (2, 4); (2, 5); (3, 5); (4, 5) ];
     test_rotate "rotate three 2 pts"
-      (rotate (2, 3) three_long 8 8)
-      (4, 3)
+      (rotate three_long 2 3 8 8)
+      4 3
       [ (4, 3); (4, 2); (4, 1) ];
   ]
 
@@ -177,20 +173,20 @@ let ship_blackbox_tests =
     test_location "loc basic" basic_ship [ (1, 1) ];
     test_location "loc two_long" two_long [ (3, 1); (3, 2) ];
     test_location "loc four_long" four_long [ (6, 4); (3, 4); (4, 4); (5, 4) ];
-    test_rotate "basic" basic_ship (1, 1) [ (1, 1) ];
-    test_rotate "rotate three about one end " three_long (2, 1)
+    test_rotate "basic" basic_ship 1 1 [ (1, 1) ];
+    test_rotate "rotate three about one end " three_long 2 1
       [ (0, 1); (1, 1); (2, 1) ];
-    test_rotate "rotate three about another end " three_long (2, 3)
+    test_rotate "rotate three about another end " three_long 2 3
       [ (2, 3); (3, 3); (4, 3) ];
-    test_rotate "rotate three about center " three_long (2, 2)
+    test_rotate "rotate three about center " three_long 2 2
       [ (1, 2); (2, 2); (3, 2) ];
-    test_rotate "rotate l about one end " l_shaped (2, 4)
+    test_rotate "rotate l about one end " l_shaped 2 4
       [ (2, 4); (1, 4); (1, 5); (1, 6) ];
-    test_rotate "rotate l abut corner " l_shaped (2, 5)
+    test_rotate "rotate l abut corner " l_shaped 2 5
       [ (3, 5); (2, 5); (2, 6); (2, 7) ];
-    test_rotate "rotate l about another end " l_shaped (4, 5)
+    test_rotate "rotate l about another end " l_shaped 4 5
       [ (4, 5); (4, 4); (4, 3); (5, 3) ];
-    test_rotate "rotate l about (3,5)" l_shaped (3, 5)
+    test_rotate "rotate l about (3,5)" l_shaped 3 5
       [ (3, 4); (4, 4); (3, 5); (3, 6) ];
     place_test "place basic_ship up 1 right 1" basic_ship 1 1 8 8 [ (2, 2) ];
     ( "out of bound: negative value y's for two_long ship" >:: fun _ ->

@@ -13,7 +13,7 @@ module type ShipSig = sig
   val sunk : t -> t
   val hit : t -> int -> int -> t
   val place : t -> int -> int -> int -> int -> t
-  val rotate : int * int -> t -> int -> int -> t
+  val rotate : t -> int -> int -> int -> int -> t
 end
 
 module ShipCheck : ShipSig = Ship
@@ -29,7 +29,15 @@ module type BoardSig = sig
   val get_width : b -> int
   val get_board : b -> int -> (string * string) list list
   val check_collision : b -> bool
-  val move_ship : b -> string -> bool -> int -> int -> b
+
+  val move_ship :
+    b ->
+    string ->
+    (Ship.t -> int -> int -> int -> int -> Ship.t) ->
+    int ->
+    int ->
+    b
+
   val update : b -> int -> int -> b
   val response : b -> int -> int -> bool
   val score : b -> int -> int

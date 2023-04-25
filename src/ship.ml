@@ -107,8 +107,7 @@ let rec rotate_list (h_lst : h list) (c_x : int) (c_y : int) : h list =
       { x = c_x + c_y - h.y; y = h.x - c_x + c_y; hit = h.hit }
       :: rotate_list t c_x c_y
 
-let rotate (point : int * int) (ship : t) (height : int) (width : int) : t =
-  let x, y = point in
+let rotate (ship : t) (x : int) (y : int) (height : int) (width : int) : t =
   let rotated_lst = rotate_list ship.hits x y in
   if out_of_bounds rotated_lst width height then raise OutOfBounds
   else { name = ship.name; hits = rotated_lst; status = ship.status }
