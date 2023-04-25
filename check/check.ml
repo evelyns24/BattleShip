@@ -13,7 +13,7 @@ module type ShipSig = sig
   val sunk : t -> t
   val hit : t -> int -> int -> t
   val place : t -> int -> int -> int -> int -> t
-  val rotate : int * int -> t -> t
+  val rotate : int * int -> t -> int -> int -> t
 end
 
 module ShipCheck : ShipSig = Ship

@@ -41,6 +41,6 @@ val place : t -> int -> int -> int -> int -> t
     [y] units vertically. Raises [OutofBounds] exception if part of the ship
     exceeds the bounds defined by [height] and [width]*)
 
-val rotate : int * int -> t -> t
+val rotate : int * int -> t -> int -> int -> t
 (** [rotate point ship ] rotates the orientation of [ship] about [point] by 90
     degrees counter clockwise. Requires [point] is on the ship*)

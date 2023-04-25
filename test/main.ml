@@ -49,10 +49,6 @@ let pp_list pp_elt lst =
 
 (* Here is an example of how to load files from the data directory: *)
 let data_dir_prefix = "data" ^ Filename.dir_sep
-
-(*let lonely = Yojson.Basic.from_file (data_dir_prefix ^ "lonely_room.json") let
-  ho = Yojson.Basic.from_file (data_dir_prefix ^ "ho_plaza.json")*)
-
 let basic_ship = make "submarine" [ (1, 1) ]
 let two_long = make "frigate" [ (3, 1); (3, 2) ]
 let three_long = make "cruiser" [ (2, 2); (2, 3); (2, 1) ]
@@ -73,7 +69,7 @@ let test_rotate (name : string) (ship : t) (point : int * int)
     (output : (int * int) list) =
   name >:: fun _ ->
   assert_equal output
-    (rotate point ship |> location)
+    (rotate point ship 8 8 |> location)
     ~cmp:cmp_set_like_lists ~printer:(pp_list pp_coord)
 
 (** [place_test name ship x y height width expected_output] constructs an OUnit
@@ -124,19 +120,22 @@ let glassbox_place =
 let glass_rotate_test =
   [
     test_rotate "rotate basic 1x" basic_ship (1, 1) [ (1, 1) ];
-    test_rotate "rotate basic 2x" (rotate (1, 1) basic_ship) (1, 1) [ (1, 1) ];
+    test_rotate "rotate basic 2x"
+      (rotate (1, 1) basic_ship 8 8)
+      (1, 1)
+      [ (1, 1) ];
     test_rotate "rotate two 1x" two_long (3, 1) [ (3, 1); (2, 1) ];
     test_rotate "rotate two 3x"
-      (rotate (3, 1) (rotate (3, 1) two_long))
+      (rotate (3, 1) (rotate (3, 1) two_long 8 8) 8 8)
       (3, 1)
       [ (3, 1); (4, 1) ];
     test_rotate "rotate L 1x" l_shaped (3, 5) [ (3, 6); (3, 5); (3, 4); (4, 4) ];
     test_rotate "rotate L 4x"
-      (rotate (3, 5) (rotate (3, 5) (rotate (3, 5) l_shaped)))
+      (rotate (3, 5) (rotate (3, 5) (rotate (3, 5) l_shaped 8 8) 8 8) 8 8)
       (3, 5)
       [ (2, 4); (2, 5); (3, 5); (4, 5) ];
     test_rotate "rotate three 2 pts"
-      (rotate (2, 3) three_long)
+      (rotate (2, 3) three_long 8 8)
       (4, 3)
       [ (4, 3); (4, 2); (4, 1) ];
   ]
