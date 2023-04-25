@@ -146,7 +146,7 @@ let rec response (board : b) (x : int) (y : int) : bool =
 
 let rec get_ship (board : b) (ship_name : string) =
   match board.ships with
-  | [] -> raise (Failure "Ship not found")
+  | [] -> raise ShipNotFound
   | h :: t ->
       if get_name h = ship_name then h
       else
@@ -158,10 +158,6 @@ let rec get_ship (board : b) (ship_name : string) =
             ships = t;
           }
           ship_name
-
-let update_squares squares ship = raise (Failure "unimplemented")
-(*Ideas: first remove the original ship from squares. Then add in the new
-  square*)
 
 (**[remove_ship ship_list ship] returns a list of ships having removed [ship]*)
 let rec remove_ship (ship_list : Ship.t list) (ship : Ship.t) =
@@ -178,11 +174,12 @@ let move_ship (board : b) (ship_name : string) (rotate : bool) (x : int)
     let new_ship =
       Ship.rotate (x, y) ship_of_interest board.height board.width
     in
+    let new_ship_list = new_ship :: remove_ship board.ships ship_of_interest in
     {
       height = board.height;
       width = board.width;
-      squares = update_squares board.squares new_ship;
-      ships = new_ship :: remove_ship board.ships ship_of_interest;
+      squares = full_list new_ship_list board.height board.width 0;
+      ships = new_ship_list;
     }
   else
     {
