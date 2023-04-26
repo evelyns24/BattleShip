@@ -24,6 +24,8 @@ type b = {
 exception Collide
 exception ShipNotFound
 
+(**[lst_to_int lst] takes a Yojson.Basic.t lst and converts it into a coordinate
+   list of type (int * int) list*)
 let rec lst_to_int lst =
   match lst with
   | [] -> []
@@ -67,6 +69,9 @@ let rec row ship_list r w id =
     in
     { x = id; y = r; state = st; name = n } :: row ship_list r w (id + 1)
 
+(**[full_list ship_list h w id] returns a full list of squares using
+   [ship_list], the board's list of ships, as well as the dimensions of the
+   board. [id] is passed onto function [row]*)
 let rec full_list ship_list h w id =
   if id = h then [] else row ship_list id w 0 @ full_list ship_list h w (id + 1)
 
@@ -181,8 +186,8 @@ let rec remove_ship (ship_list : Ship.t list) (ship : Ship.t) =
       if Ship.get_name h = Ship.get_name ship then t
       else h :: remove_ship t ship
 
-(* returns false if there is a collision on a specific coordinate, true
-   otherwise *)
+(** [coord_check board x y loc] returns false if there is a collision on a
+    specific coordinate, true otherwise *)
 let coord_check (board : b) (x : int) (y : int) (loc : (int * int) list) : bool
     =
   if response board (x - 1) (y + 1) && not (List.mem (x - 1, y + 1) loc) then
@@ -199,15 +204,16 @@ let coord_check (board : b) (x : int) (y : int) (loc : (int * int) list) : bool
   else if response board (x - 1) y && not (List.mem (x - 1, y) loc) then false
   else true
 
-(* returns false if there is a collision on a ship, true otherwise *)
+(***[collision_h board s loc] returns false if there is a collision on a ship,
+  true otherwise *)
 let rec collision_h (board : b) (s : Ship.t) (loc : (int * int) list) : bool =
   match loc with
   | [] -> true
   | (a, b) :: t ->
       coord_check board a b (Ship.location s) && collision_h board s t
 
-(* checks all of the ships on the board for collisions. returns false if there
-   is a collision, true otherwise *)
+(** [check_collision_h all_ships board] checks all of the ships on the board for
+    collisions. returns false if there is a collision, true otherwise *)
 let rec check_collision_h (all_ships : Ship.t list) (board : b) =
   match all_ships with
   | [] -> true
@@ -231,6 +237,8 @@ let move_ship (board : b) (ship_name : string) move_func (x : int) (y : int) : b
   in
   if check_collision potential_board then raise Collide else potential_board
 
+(**[replace_square squares_list target new_square] returns a new list of squares
+   where the target square, [target], is replaced by [new_square]*)
 let rec replace_square (squares_list : t list) (target : t) (new_square : t) =
   match squares_list with
   | [] -> []
@@ -238,6 +246,8 @@ let rec replace_square (squares_list : t list) (target : t) (new_square : t) =
       if h.x = target.x && h.y = target.y then new_square :: t
       else replace_square t target new_square
 
+(**[replace_ship ship_list target new_ship] returns a new list of ships where
+   the target ship, [target], is replaced by [new_ship]*)
 let rec replace_ship (ship_list : Ship.t list) (target : Ship.t)
     (new_ship : Ship.t) =
   match ship_list with

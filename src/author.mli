@@ -6,7 +6,7 @@
    or use it for commercial purposes.
  ************************************************************)
 
-(** CS 3110 Spring 2023 Assignment A2 Adventure
+(** CS 3110 Spring 2023 Final Project : Battleship
 
     @author Gloria Geng (gcg46), Alisha Lin (al853), Evelyn Si (es828) *)
 
