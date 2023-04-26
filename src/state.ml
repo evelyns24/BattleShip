@@ -17,10 +17,11 @@ let init_state b1 b2 =
     p2_outer = make_empty b1;
   }
 
-let get_p1_inner (state : t) : Board.b = state.p1_inner
-let get_p1_outer (state : t) : Board.b = state.p1_outer
-let get_p2_inner (state : t) : Board.b = state.p2_inner
-let get_p2_outer (state : t) : Board.b = state.p2_outer
+let get_inner (state : t) (player : int) : Board.b =
+  if player = 1 then state.p1_inner else state.p2_inner
+
+let get_outer (state : t) (player : int) : Board.b =
+  if player = 1 then state.p1_outer else state.p2_outer
 
 type result =
   | Legal of t
@@ -28,7 +29,7 @@ type result =
 
 let move state player ship_name x y =
   if player = 1 then
-    let b = get_p1_inner state in
+    let b = get_inner state 1 in
     {
       p1_inner = move_ship b ship_name place x y;
       p1_outer = state.p1_outer;
@@ -36,7 +37,7 @@ let move state player ship_name x y =
       p2_outer = state.p2_outer;
     }
   else
-    let b = get_p2_inner state in
+    let b = get_inner state 2 in
     {
       p1_inner = state.p1_inner;
       p1_outer = state.p1_outer;
@@ -44,5 +45,7 @@ let move state player ship_name x y =
       p2_outer = state.p2_outer;
     }
 
-let rotate player ship_name x = failwith "Unimplemented : Alisha's problem"
+let rotate state player ship_name x y =
+  failwith "Unimplemented : Alisha's problem"
+
 let hit player x y = failwith "Unimplemented : Gloria's problem"

@@ -75,17 +75,15 @@ module type StateSig = sig
   type t
 
   val init_state : Board.b -> Board.b -> t
-  val get_p1_inner : t -> Board.b
-  val get_p1_outer : t -> Board.b
-  val get_p2_inner : t -> Board.b
-  val get_p2_outer : t -> Board.b
+  val get_inner : t -> int -> Board.b
+  val get_outer : t -> int -> Board.b
 
   type result =
     | Legal of t
     | Illegal
 
   val move : t -> int -> string -> int -> int -> t
-  val rotate : int -> string -> int -> int -> t
+  val rotate : t -> int -> string -> int -> int -> t
   val hit : int -> int -> int -> t
 end
 
