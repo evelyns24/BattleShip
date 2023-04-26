@@ -79,7 +79,7 @@ let rec out_of_bounds h_list width height =
   match h_list with
   | [] -> false
   | { x = x1; y = y1; hit = _ } :: t ->
-      if x1 < 0 || x1 > width || y1 < 0 || y1 > height then true
+      if x1 < 0 || x1 >= width || y1 < 0 || y1 >= height then true
       else out_of_bounds t width height
 
 (** [h_list lst v h height width] returns an h list where v is added to a.x and
