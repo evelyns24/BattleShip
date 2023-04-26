@@ -89,7 +89,7 @@ let from_json (j : Yojson.Basic.t) : b =
 let make_empty board =
   let new_list =
     List.map
-      (fun t -> { x = t.x; y = t.y; state = Empty; name = t.name })
+      (fun t -> { x = t.x; y = t.y; state = Empty; name = "none" })
       board.squares
   in
   {
