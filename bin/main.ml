@@ -11,6 +11,8 @@ let rec print_row (row : (string * string) list) =
   | [] -> print_string "\n"
   | (symbol, name) :: t ->
       if name = "none" then print_string symbol
+      else if symbol = "M" then
+        ANSITerminal.print_string [ ANSITerminal.red ] symbol
       else if name = "Aircraft_Carrier_1" then
         ANSITerminal.print_string [ ANSITerminal.white ] symbol
       else if name = "Aircraft_Carrier_2" then
@@ -48,6 +50,12 @@ let print_ships () =
   ANSITerminal.print_string [ ANSITerminal.green ] "> Cruiser \n";
   ANSITerminal.print_string [ ANSITerminal.yellow ] "> Frigate \n"
 
+(**[print_empty_lines n] prints n empty lines*)
+let print_empty_lines n =
+  for i = 0 to n do
+    print_endline ""
+  done
+
 (**[get_command command] attempts to parse the command*)
 let rec get_command (command : string) =
   try parse command
@@ -68,7 +76,7 @@ let rec get_command (command : string) =
 let rec customize_board state player =
   print_endline "\nThis is what your board currently looks like:";
   print_board (get_inner state player);
-  print_endline "\nHere are all of the possible ships: ";
+  print_endline "Here are all of the possible ships: ";
   print_ships ();
   print_string "\nAre you done customizing your board? \n> ";
   match read_line () with
@@ -108,10 +116,44 @@ and handle_customization func state player name x y =
       print_endline "You've collided with another ship. Please try again";
       customize_board state player
 
-(**[play state] facilitates one round of game play. One round includes player
-   1's turn AND player 2's turn*)
-let rec play state = ()
-(* if notWin (get_inner state 1) *)
+(**[play_turn state player] returns the state of the game after player [player]
+   has made their turn*)
+let rec play_turn state player =
+  match get_command (read_line ()) with
+  | Hit (x, y) -> (
+      try hit state player x y
+      with OutOfBounds ->
+        print_string
+          "You've attacked an out of bounds square. Please try again \n> ";
+        play_turn state player)
+  | Quit ->
+      print_endline "Thank you for player!";
+      exit 0
+  | exception End_of_file ->
+      print_string "Please put in a valid hit command. \n>";
+      play_turn state player
+  | _ ->
+      print_string
+        "We are in the attack phase of the game. Please use a hit command. \n> ";
+      play_turn state player
+
+(**[play state player] facilitates the game. Player [player] starts*)
+let rec play state =
+  if is_lost (get_inner state 1) then (
+    print_endline "Player 2 has won!\nCongratulations!";
+    exit 0)
+  else if is_lost (get_inner state 2) then (
+    print_endline "Player 1 has won!\nCongratulations!";
+    exit 0)
+  else print_endline "\nPlayer 1 please make your turn.";
+  print_board (get_outer state 2);
+  print_string "> ";
+  let turn_1_played = play_turn state 1 in
+  print_endline "\nPlayer 2 please make your turn.";
+  print_board (get_outer state 1);
+  print_string "> ";
+  let turn_2_played = play_turn turn_1_played 2 in
+  play turn_2_played
 
 (** [play_game f] starts the battle ship game in file [f]. *)
 let play_game f1 f2 =
@@ -139,7 +181,11 @@ let play_game f1 f2 =
      Player 2, please begin customizing your board. You may use \n\
      Move x y or Rotate x y commands.";
   let completed_state = customize_board new_state 2 in
-  print_endline "We are now ready to begin";
+  print_empty_lines 100;
+  print_endline
+    "We are now ready to begin. Valid commands are formated as \n\
+     1. hit x y or \n\
+     2. quit";
   play completed_state
 
 let data_dir_prefix = "data" ^ Filename.dir_sep
