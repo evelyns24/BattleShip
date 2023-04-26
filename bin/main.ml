@@ -72,6 +72,7 @@ let rec customize_board state player =
   print_ships ();
   print_string "\nAre you done customizing your board? \n> ";
   match read_line () with
+  | "quit" -> exit 0
   | "yes" ->
       print_endline "This is your final board";
       print_board (get_inner state player);
@@ -80,25 +81,37 @@ let rec customize_board state player =
       print_string "\nWhat would you like to do? \n> ";
       match get_command (read_line ()) with
       | Move { name; coordinate = x, y } ->
-          let new_state = move state player name x y in
-          customize_board new_state player
+          handle_customization move state player name x y
       | Rotate { name; coordinate = x, y } ->
-          let new_state = rotate state player name x y in
-          customize_board new_state player
+          handle_customization rotate state player name x y
       | Quit -> exit 0
       | Hit (x, y) ->
           print_endline
-            "we are not in the attack phase of the game. Please input a move \
-             or rotate command \n\
+            "This is not the attack phase of the game. Please input a move or \
+             rotate command \n\
              > ";
           customize_board state player)
   | exception End_of_file -> customize_board state player
   | _ ->
-      print_endline "Please input \'yes\' or \'no\'";
+      print_endline "Please input \'yes\', \'no\', \'quit\'";
       customize_board state player
 
-(**[play state] facilitates game play*)
-let rec play state = failwith "unimplemeted play"
+and handle_customization func state player name x y =
+  try customize_board (func state player name x y) player with
+  | ShipNotFound ->
+      print_endline "No such ship exists. Please try again";
+      customize_board state player
+  | OutOfBounds ->
+      print_endline "You've moved out of bounds. Please try again";
+      customize_board state player
+  | Collide ->
+      print_endline "You've collided with another ship. Please try again";
+      customize_board state player
+
+(**[play state] facilitates one round of game play. One round includes player
+   1's turn AND player 2's turn*)
+let rec play state = ()
+(* if notWin (get_inner state 1) *)
 
 (** [play_game f] starts the battle ship game in file [f]. *)
 let play_game f1 f2 =
@@ -126,6 +139,7 @@ let play_game f1 f2 =
      Player 2, please begin customizing your board. You may use \n\
      Move x y or Rotate x y commands.";
   let completed_state = customize_board new_state 2 in
+  print_endline "We are now ready to begin";
   play completed_state
 
 let data_dir_prefix = "data" ^ Filename.dir_sep

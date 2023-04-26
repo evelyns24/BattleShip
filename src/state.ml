@@ -48,4 +48,4 @@ let move state player ship_name x y =
 let rotate state player ship_name x y =
   failwith "Unimplemented : Alisha's problem"
 
-let hit player x y = failwith "Unimplemented : Gloria's problem"
+let hit state player x y = failwith "Unimplemented : Gloria's problem"

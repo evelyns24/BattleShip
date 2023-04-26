@@ -36,6 +36,6 @@ val rotate : t -> int -> string -> int -> int -> t
 (**[rotate player ship_name x y] returns a new state where player [player]
    rotates the ship named [ship_name] counterclockwise about point ([x], [y])*)
 
-val hit : int -> int -> int -> t
+val hit : t -> int -> int -> int -> t
 (**[hit player  x y] returns a new state where player [player] has made a hit on
    the opponet's board at point ([x], [y])*)

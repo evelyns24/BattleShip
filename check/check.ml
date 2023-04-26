@@ -84,7 +84,7 @@ module type StateSig = sig
 
   val move : t -> int -> string -> int -> int -> t
   val rotate : t -> int -> string -> int -> int -> t
-  val hit : int -> int -> int -> t
+  val hit : t -> int -> int -> int -> t
 end
 
 module StateCheck : StateSig = State
