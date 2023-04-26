@@ -6,6 +6,8 @@
 
 (**********************************************************************)
 
+exception OutOfBoundsHit
+
 type t
 (** The abstract type of values representing the game state. *)
 
@@ -21,11 +23,6 @@ val get_inner : t -> int -> Board.b
 val get_outer : t -> int -> Board.b
 (** [get_p1_outer state player] returns [player] outer board, which has
     information on where player two has attempted to hit*)
-
-(** The type representing the result of an attempted movement. *)
-type result =
-  | Legal of t
-  | Illegal
 
 val move : t -> int -> string -> int -> int -> t
 (**[move state player ship_name x y] returns a new state where player [player],
