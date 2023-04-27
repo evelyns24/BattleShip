@@ -23,8 +23,10 @@ module type BoardSig = sig
   type b
 
   exception Collide
+  exception ShipNotFound
 
   val from_json : Yojson.Basic.t -> b
+  val make_empty : b -> b
   val get_height : b -> int
   val get_width : b -> int
   val get_board : b -> int -> (string * string) list list
@@ -72,13 +74,19 @@ module CommandCheck : CommandSig = Command
 module type StateSig = sig
   type t
 
-  val init_state : Ship.t -> Ship.t -> t
+  val init_state : Board.b -> Board.b -> t
+  val get_p1_inner : t -> Board.b
+  val get_p1_outer : t -> Board.b
+  val get_p2_inner : t -> Board.b
+  val get_p2_outer : t -> Board.b
 
   type result =
     | Legal of t
     | Illegal
 
-  val go : string -> Ship.t -> t -> result
+  val move : int -> string -> int -> int -> t
+  val rotate : int -> string -> int -> int -> t
+  val hit : int -> int -> int -> t
 end
 
 module StateCheck : StateSig = State

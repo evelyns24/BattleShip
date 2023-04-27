@@ -1,19 +1,31 @@
 (* Note: You may introduce new code anywhere in this file. *)
+open Board
 open Ship
 
 type t = {
-  current : string;
-  visited : string list;
+  p1_inner : Board.b;
+  p1_outer : Board.b;
+  p2_inner : Board.b;
+  p2_outer : Board.b;
 }
 
-let init_state ship1 ship2 = raise (Failure "Unimplemented init_state")
+let init_state b1 b2 =
+  {
+    p1_inner = b1;
+    p1_outer = make_empty b2;
+    p2_inner = b2;
+    p2_outer = make_empty b1;
+  }
+
+let get_p1_inner (state : t) : Board.b = state.p1_inner
+let get_p1_outer (state : t) : Board.b = state.p1_outer
+let get_p2_inner (state : t) : Board.b = state.p2_inner
+let get_p2_outer (state : t) : Board.b = state.p2_outer
 
 type result =
   | Legal of t
   | Illegal
 
-(** [refine_list elt lst] adds elt to lst if elt is not already in lst,
-    otherwise returns lst*)
-let rec refine_list elt lst = if List.mem elt lst then lst else elt :: lst
-
-let go ex adv st = raise (Failure "Unimplemented go")
+let move player ship_name x y = failwith "Unimplemented : Evelyn's problem"
+let rotate player ship_name x = failwith "Unimplemented : Alisha's problem"
+let hit player x y = failwith "Unimplemented : Gloria's problem"

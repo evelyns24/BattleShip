@@ -9,10 +9,15 @@ type b
 (**This abstract type represents the board*)
 
 exception Collide
+exception ShipNotFound
 
 val from_json : Yojson.Basic.t -> b
 (** [from_json b] is the board that [b] represents. Requires: [b] is a valid
     JSON board representation. *)
+
+val make_empty : b -> b
+(**[make_empty board] returns the empty version of [board], so that there are no
+   ships and all of the squares are in the Emtpy state*)
 
 val get_height : b -> int
 (**[get_height board] returns the height of the board. Requires board is a valid

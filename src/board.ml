@@ -81,6 +81,19 @@ let from_json (j : Yojson.Basic.t) : b =
     ships = ship_lst;
   }
 
+let make_empty board =
+  let new_list =
+    List.map
+      (fun t -> { x = t.x; y = t.y; state = Empty; name = t.name })
+      board.squares
+  in
+  {
+    height = board.height;
+    width = board.width;
+    squares = new_list;
+    ships = board.ships;
+  }
+
 let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
 
@@ -168,18 +181,6 @@ let rec remove_ship (ship_list : Ship.t list) (ship : Ship.t) =
       if Ship.get_name h = Ship.get_name ship then t
       else h :: remove_ship t ship
 
-let move_ship (board : b) (ship_name : string) move_func (x : int) (y : int) : b
-    =
-  let ship_of_interest = get_ship board ship_name in
-  let new_ship = move_func ship_of_interest x y board.height board.width in
-  let new_ship_list = new_ship :: remove_ship board.ships ship_of_interest in
-  {
-    height = board.height;
-    width = board.width;
-    squares = full_list new_ship_list board.height board.width 0;
-    ships = new_ship_list;
-  }
-
 (* returns false if there is a collision on a specific coordinate, true
    otherwise *)
 let coord_check (board : b) (x : int) (y : int) (loc : (int * int) list) : bool
@@ -214,6 +215,21 @@ let rec check_collision_h (all_ships : Ship.t list) (board : b) =
 
 let rec check_collision (board : b) : bool =
   not (check_collision_h board.ships board)
+
+let move_ship (board : b) (ship_name : string) move_func (x : int) (y : int) : b
+    =
+  let ship_of_interest = get_ship board ship_name in
+  let new_ship = move_func ship_of_interest x y board.height board.width in
+  let new_ship_list = new_ship :: remove_ship board.ships ship_of_interest in
+  let potential_board =
+    {
+      height = board.height;
+      width = board.width;
+      squares = full_list new_ship_list board.height board.width 0;
+      ships = new_ship_list;
+    }
+  in
+  if check_collision potential_board then raise Collide else potential_board
 
 let rec replace_square (squares_list : t list) (target : t) (new_square : t) =
   match squares_list with
