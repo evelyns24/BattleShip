@@ -49,13 +49,12 @@ let rec to_ship lst =
       let coord = h |> member "location" |> to_list |> lst_to_int in
       make n coord :: to_ship t
 
-(**[identify_ship b r c lst] returns the name of the ship located at (r,c), or
-   raises ShipNotFound. [lst] is the list of all ships on the board*)
+(**[identify_ship b r c lst] returns the ship located at (r,c), or raises
+   ShipNotFound. [lst] is the list of all ships on the board*)
 let rec identify_ship r c lst =
   match lst with
   | [] -> raise ShipNotFound
-  | h :: t ->
-      if List.mem (r, c) (location h) then get_name h else identify_ship r c t
+  | h :: t -> if List.mem (r, c) (location h) then h else identify_ship r c t
 
 (**[row ship_list r w id] returns a t list that represents the [r]th row, with
    width [w] and [ship_list], the list of ships*)
@@ -63,7 +62,9 @@ let rec row ship_list r w id =
   if id = w then []
   else
     let st = if List.mem (id, r) (to_loc ship_list) then Full else Empty in
-    let n = try identify_ship id r ship_list with ShipNotFound -> "none" in
+    let n =
+      try get_name (identify_ship id r ship_list) with ShipNotFound -> "none"
+    in
     { x = id; y = r; state = st; name = n } :: row ship_list r w (id + 1)
 
 let rec full_list ship_list h w id =
@@ -214,6 +215,21 @@ let rec check_collision_h (all_ships : Ship.t list) (board : b) =
 let rec check_collision (board : b) : bool =
   not (check_collision_h board.ships board)
 
+let rec replace_square (squares_list : t list) (target : t) (new_square : t) =
+  match squares_list with
+  | [] -> []
+  | h :: t ->
+      if h.x = target.x && h.y = target.y then new_square :: t
+      else replace_square t target new_square
+
+let rec replace_ship (ship_list : Ship.t list) (target : Ship.t)
+    (new_ship : Ship.t) =
+  match ship_list with
+  | [] -> []
+  | h :: t ->
+      if get_name h = get_name target then new_ship :: t
+      else replace_ship t target new_ship
+
 let update (board : b) (x : int) (y : int) : b =
   let target_square = List.nth board.squares (((y - 1) * board.width) + x) in
   let new_square =
@@ -221,7 +237,14 @@ let update (board : b) (x : int) (y : int) : b =
       { x; y; state = Hit; name = target_square.name }
     else { x; y; state = Miss; name = target_square.name }
   in
-  failwith "unimplemented"
+  let target_ship = identify_ship x y board.ships in
+  let new_ship = hit target_ship x y in
+  {
+    height = board.height;
+    width = board.width;
+    squares = replace_square board.squares target_square new_square;
+    ships = replace_ship board.ships target_ship new_ship;
+  }
 
 let rec score (board : b) (acc : int) : int =
   match board.squares with
