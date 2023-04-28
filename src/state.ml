@@ -26,6 +26,23 @@ type result =
   | Legal of t
   | Illegal
 
-let move player ship_name x y = failwith "Unimplemented : Evelyn's problem"
+let move state player ship_name x y =
+  if player = 1 then
+    let b = get_p1_inner state in
+    {
+      p1_inner = move_ship b ship_name place x y;
+      p1_outer = state.p1_outer;
+      p2_inner = state.p2_inner;
+      p2_outer = state.p2_outer;
+    }
+  else
+    let b = get_p2_inner state in
+    {
+      p1_inner = state.p1_inner;
+      p1_outer = state.p1_outer;
+      p2_inner = move_ship b ship_name place x y;
+      p2_outer = state.p2_outer;
+    }
+
 let rotate player ship_name x = failwith "Unimplemented : Alisha's problem"
 let hit player x y = failwith "Unimplemented : Gloria's problem"
