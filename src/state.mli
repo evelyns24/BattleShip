@@ -35,9 +35,10 @@ type result =
   | Legal of t
   | Illegal
 
-val move : int -> string -> int -> int -> t
-(**[move player ship_name x y] returns a new state where player [player] moves
-   the ship named [ship_name] to the right by x and up by y*)
+val move : t -> int -> string -> int -> int -> t
+(**[move state player ship_name x y] returns a new state where player [player],
+   currently at state [state], moves the ship named [ship_name] to the right by
+   x and up by y*)
 
 val rotate : int -> string -> int -> int -> t
 (**[rotate player ship_name x y] returns a new state where player [player]
