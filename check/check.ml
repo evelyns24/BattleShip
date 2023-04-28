@@ -84,7 +84,7 @@ module type StateSig = sig
     | Legal of t
     | Illegal
 
-  val move : int -> string -> int -> int -> t
+  val move : t -> int -> string -> int -> int -> t
   val rotate : int -> string -> int -> int -> t
   val hit : int -> int -> int -> t
 end
