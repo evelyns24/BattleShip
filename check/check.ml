@@ -43,6 +43,7 @@ module type BoardSig = sig
   val update : b -> int -> int -> b
   val response : b -> int -> int -> bool
   val score : b -> int -> int
+  val update_outer_board : b -> b -> int -> int -> b
 end
 
 module BoardCheck : BoardSig = Board

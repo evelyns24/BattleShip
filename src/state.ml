@@ -1,3 +1,4 @@
+(* Note: You may introduce new code anywhere in this file. *)
 open Board
 open Ship
 
@@ -7,8 +8,6 @@ type t = {
   p2_inner : Board.b;
   p2_outer : Board.b;
 }
-
-exception OutOfBoundsHit
 
 let init_state b1 b2 =
   {
@@ -23,6 +22,10 @@ let get_inner (state : t) (player : int) : Board.b =
 
 let get_outer (state : t) (player : int) : Board.b =
   if player = 1 then state.p1_outer else state.p2_outer
+
+type result =
+  | Legal of t
+  | Illegal
 
 let move state player ship_name x y =
   if player = 1 then
@@ -45,4 +48,18 @@ let move state player ship_name x y =
 let rotate state player ship_name x y =
   failwith "Unimplemented : Alisha's problem"
 
-let hit state player x y = failwith "Unimplemented : Gloria's problem"
+let hit state player x y =
+  if player = 1 then
+    {
+      p1_inner = state.p1_inner;
+      p1_outer = state.p1_outer;
+      p2_inner = update state.p2_inner x y;
+      p2_outer = update_outer_board state.p2_inner state.p2_outer x y;
+    }
+  else
+    {
+      p1_inner = update state.p1_inner x y;
+      p1_outer = update_outer_board state.p2_inner state.p2_outer x y;
+      p2_inner = state.p2_inner;
+      p2_outer = state.p2_outer;
+    }

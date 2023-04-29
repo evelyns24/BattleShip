@@ -89,7 +89,7 @@ let from_json (j : Yojson.Basic.t) : b =
 let make_empty board =
   let new_list =
     List.map
-      (fun t -> { x = t.x; y = t.y; state = Empty; name = "none" })
+      (fun t -> { x = t.x; y = t.y; state = Empty; name = t.name })
       board.squares
   in
   {
@@ -294,3 +294,20 @@ let rec score (board : b) (acc : int) : int =
             ships = board.ships;
           }
           acc
+
+let update_outer_board (inner_board : b) (outer_board : b) (x : int) (y : int) :
+    b =
+  let target_square =
+    List.nth inner_board.squares (((y - 1) * inner_board.width) + x)
+  in
+  let new_square =
+    if target_square.state = Full || target_square.state = Hit then
+      { x; y; state = Hit; name = target_square.name }
+    else { x; y; state = Miss; name = target_square.name }
+  in
+  {
+    height = outer_board.height;
+    width = outer_board.width;
+    squares = replace_square outer_board.squares target_square new_square;
+    ships = outer_board.ships;
+  }
