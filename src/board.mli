@@ -12,7 +12,7 @@ exception Collide
 exception ShipNotFound
 
 val from_json : Yojson.Basic.t -> b
-(** [from_json b] is the board that [b] represents. Requires: [b] is a valid
+(** [from_json b] is the board that [b] represents. [Requires]: [b] is a valid
     JSON board representation. *)
 
 val make_empty : b -> b
@@ -20,11 +20,11 @@ val make_empty : b -> b
    ships and all of the squares are in the Emtpy state*)
 
 val get_height : b -> int
-(**[get_height board] returns the height of the board. Requires board is a valid
-   board*)
+(**[get_height board] returns the height of the board. [Requires] board is a
+   valid board*)
 
 val get_width : b -> int
-(**[get_width board] returns the width of the board. Requires board is a valid
+(**[get_width board] returns the width of the board. [Requires] board is a valid
    board*)
 
 val get_board : b -> int -> (string * string) list list
@@ -34,10 +34,12 @@ val get_board : b -> int -> (string * string) list list
 
 val check_collision : b -> bool
 (**[check_collision board] returns true if any ship is within a one square
-   distance of any other ship.*)
+   distance of any other ship. [Raises] [Collide] if any ships are within 1
+   square of each other.*)
 
 val update : b -> int -> int -> b
-(**[update board x y] returns a new board that responds to a hit at (x,y)*)
+(**[update board x y] returns a new board that responds to a hit at (x,y).
+   [Requires] x, y to be ints. *)
 
 val move_ship :
   b ->

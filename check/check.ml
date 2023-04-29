@@ -76,8 +76,6 @@ module CommandCheck : CommandSig = Command
 module type StateSig = sig
   type t
 
-  exception OutOfBoundsHit
-
   val init_state : Board.b -> Board.b -> t
   val get_inner : t -> int -> Board.b
   val get_outer : t -> int -> Board.b

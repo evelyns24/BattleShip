@@ -9,8 +9,6 @@ type t = {
   p2_outer : Board.b;
 }
 
-exception OutOfBoundsHit
-
 let init_state b1 b2 =
   {
     p1_inner = b1;
@@ -51,13 +49,7 @@ let rotate state player ship_name x y =
   failwith "Unimplemented : Alisha's problem"
 
 let hit state player x y =
-  if
-    x < 0
-    || x >= get_width state.p1_inner
-    || y < 0
-    || y >= get_height state.p2_inner
-  then raise OutOfBoundsHit
-  else if player = 1 then
+  if player = 1 then
     {
       p1_inner = state.p1_inner;
       p1_outer = state.p1_outer;

@@ -257,28 +257,31 @@ let rec replace_ship (ship_list : Ship.t list) (target : Ship.t)
       else replace_ship t target new_ship
 
 let update (board : b) (x : int) (y : int) : b =
-  let target_square = List.nth board.squares ((y * board.width) + x) in
-  let new_square =
-    if target_square.state = Full || target_square.state = Hit then
-      { x; y; state = Hit; name = target_square.name }
-    else { x; y; state = Miss; name = target_square.name }
-  in
-  match identify_ship x y board.ships with
-  | exception ShipNotFound ->
-      {
-        height = board.height;
-        width = board.width;
-        squares = replace_square board.squares target_square new_square;
-        ships = board.ships;
-      }
-  | target_ship ->
-      let new_ship = sunk (hit target_ship x y) in
-      {
-        height = board.height;
-        width = board.width;
-        squares = replace_square board.squares target_square new_square;
-        ships = replace_ship board.ships target_ship new_ship;
-      }
+  if x < 0 || x >= get_width board || y < 0 || y >= get_height board then
+    raise OutOfBounds
+  else
+    let target_square = List.nth board.squares ((y * board.width) + x) in
+    let new_square =
+      if target_square.state = Full || target_square.state = Hit then
+        { x; y; state = Hit; name = target_square.name }
+      else { x; y; state = Miss; name = target_square.name }
+    in
+    match identify_ship x y board.ships with
+    | exception ShipNotFound ->
+        {
+          height = board.height;
+          width = board.width;
+          squares = replace_square board.squares target_square new_square;
+          ships = board.ships;
+        }
+    | target_ship ->
+        let new_ship = sunk (hit target_ship x y) in
+        {
+          height = board.height;
+          width = board.width;
+          squares = replace_square board.squares target_square new_square;
+          ships = replace_ship board.ships target_ship new_ship;
+        }
 
 let rec score (board : b) (acc : int) : int =
   match board.squares with
@@ -308,17 +311,20 @@ let is_lost (board : b) : bool =
 
 let update_outer_board (inner_board : b) (outer_board : b) (x : int) (y : int) :
     b =
-  let target_square =
-    List.nth inner_board.squares ((y * inner_board.width) + x)
-  in
-  let new_square =
-    if target_square.state = Full || target_square.state = Hit then
-      { x; y; state = Hit; name = target_square.name }
-    else { x; y; state = Miss; name = target_square.name }
-  in
-  {
-    height = outer_board.height;
-    width = outer_board.width;
-    squares = replace_square outer_board.squares target_square new_square;
-    ships = outer_board.ships;
-  }
+  if x < 0 || x >= get_width inner_board || y < 0 || y >= get_height inner_board
+  then raise OutOfBounds
+  else
+    let target_square =
+      List.nth inner_board.squares ((y * inner_board.width) + x)
+    in
+    let new_square =
+      if target_square.state = Full || target_square.state = Hit then
+        { x; y; state = Hit; name = target_square.name }
+      else { x; y; state = Miss; name = target_square.name }
+    in
+    {
+      height = outer_board.height;
+      width = outer_board.width;
+      squares = replace_square outer_board.squares target_square new_square;
+      ships = outer_board.ships;
+    }

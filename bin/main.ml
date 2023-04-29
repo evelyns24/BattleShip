@@ -144,7 +144,7 @@ let rec play_turn state player =
   match get_command (read_line ()) with
   | Hit (x, y) -> (
       try hit state player x y
-      with OutOfBoundsHit ->
+      with OutOfBounds ->
         print_string
           "You've attacked an out of bounds square. Please try again \n> ";
         play_turn state player)
