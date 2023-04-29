@@ -272,7 +272,7 @@ let update (board : b) (x : int) (y : int) : b =
         ships = board.ships;
       }
   | target_ship ->
-      let new_ship = hit target_ship x y in
+      let new_ship = sunk (hit target_ship x y) in
       {
         height = board.height;
         width = board.width;
@@ -302,6 +302,9 @@ let rec score (board : b) (acc : int) : int =
             ships = board.ships;
           }
           acc
+
+let is_lost (board : b) : bool =
+  List.fold_left (fun acc ship -> acc && get_status ship) true board.ships
 
 let update_outer_board (inner_board : b) (outer_board : b) (x : int) (y : int) :
     b =

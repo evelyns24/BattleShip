@@ -67,7 +67,7 @@ let hit state player x y =
   else
     {
       p1_inner = update state.p1_inner x y;
-      p1_outer = update_outer_board state.p2_inner state.p2_outer x y;
+      p1_outer = update_outer_board state.p1_inner state.p1_outer x y;
       p2_inner = state.p2_inner;
       p2_outer = state.p2_outer;
     }

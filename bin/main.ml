@@ -3,6 +3,7 @@ open Board
 open Ship
 open State
 open Command
+open Unix
 
 (**[string_of_row row] takes a string list, [row] and turns it into a string.
    Requires [row] is a string list*)
@@ -10,9 +11,10 @@ let rec print_row (row : (string * string) list) =
   match row with
   | [] -> print_string "\n"
   | (symbol, name) :: t ->
-      if name = "none" then print_string symbol
-      else if symbol = "M" then
-        ANSITerminal.print_string [ ANSITerminal.red ] symbol
+      if symbol = "M" then ANSITerminal.print_string [ ANSITerminal.red ] symbol
+      else if symbol = "X" then
+        ANSITerminal.print_string [ ANSITerminal.green ] symbol
+      else if name = "none" then print_string symbol
       else if name = "Aircraft_Carrier_1" then
         ANSITerminal.print_string [ ANSITerminal.white ] symbol
       else if name = "Aircraft_Carrier_2" then
@@ -71,50 +73,70 @@ let rec get_command (command : string) =
       | exception End_of_file -> ""
       | s -> s)
 
+let rec get_response () =
+  match read_line () with
+  | "quit" -> "quit"
+  | "yes" -> "yes"
+  | "no" -> "no"
+  | exception End_of_file ->
+      print_string "\nPlease input yes, no, or quit \n> ";
+      get_response ()
+  | _ ->
+      print_string "\nPlease input yes, no, or quit \n> ";
+      get_response ()
+
+let rec process_move state player =
+  print_string "What would you like to do? \n> ";
+  match get_command (read_line ()) with
+  | Hit _ ->
+      print_string
+        "This is not the attack phase of the game. Please input a move or \
+         rotate command \n\
+         > ";
+      process_move state player
+  | Rotate { name; coordinate = x, y } ->
+      handle_customization rotate state player name x y
+  | Move { name; coordinate = x, y } ->
+      handle_customization move state player name x y
+  | Quit ->
+      print_endline "quitting";
+      exit 0
+
+and handle_customization func state player name x y =
+  try func state player name x y with
+  | ShipNotFound ->
+      print_endline "No such ship exists. Please try again";
+      process_move state player
+  | OutOfBounds ->
+      print_endline "You've moved out of bounds. Please try again";
+      process_move state player
+  | Collide ->
+      print_endline "You've collided with another ship. Please try again";
+      process_move state player
+
 (**[customize_board state player] returns a new state after [player]'s board has
    been modified*)
 let rec customize_board state player =
-  print_endline "\nThis is what your board currently looks like:";
+  Printf.printf "%s %!"
+    ("\nWelcome Player " ^ string_of_int player
+   ^ "! \nThis is what your board currently looks like:");
+  print_endline "";
   print_board (get_inner state player);
-  print_endline "Here are all of the possible ships: ";
+  print_endline "Reminder: Here are all of the possible ships: ";
   print_ships ();
   print_string "\nAre you done customizing your board? \n> ";
-  match read_line () with
-  | "quit" -> exit 0
+  match get_response () with
+  | "quit" ->
+      print_endline "quitting";
+      exit 0
   | "yes" ->
       print_endline "This is your final board";
       print_board (get_inner state player);
       state
-  | "no" -> (
-      print_string "\nWhat would you like to do? \n> ";
-      match get_command (read_line ()) with
-      | Move { name; coordinate = x, y } ->
-          handle_customization move state player name x y
-      | Rotate { name; coordinate = x, y } ->
-          handle_customization rotate state player name x y
-      | Quit -> exit 0
-      | Hit (x, y) ->
-          print_endline
-            "This is not the attack phase of the game. Please input a move or \
-             rotate command \n\
-             > ";
-          customize_board state player)
-  | exception End_of_file -> customize_board state player
-  | _ ->
-      print_endline "Please input \'yes\', \'no\', \'quit\'";
-      customize_board state player
-
-and handle_customization func state player name x y =
-  try customize_board (func state player name x y) player with
-  | ShipNotFound ->
-      print_endline "No such ship exists. Please try again";
-      customize_board state player
-  | OutOfBounds ->
-      print_endline "You've moved out of bounds. Please try again";
-      customize_board state player
-  | Collide ->
-      print_endline "You've collided with another ship. Please try again";
-      customize_board state player
+  | "no" ->
+      let new_state = process_move state player in
+      customize_board new_state player
+  | _ -> failwith "impossible"
 
 (**[play_turn state player] returns the state of the game after player [player]
    has made their turn*)
@@ -122,7 +144,7 @@ let rec play_turn state player =
   match get_command (read_line ()) with
   | Hit (x, y) -> (
       try hit state player x y
-      with OutOfBounds ->
+      with OutOfBoundsHit ->
         print_string
           "You've attacked an out of bounds square. Please try again \n> ";
         play_turn state player)
@@ -130,9 +152,13 @@ let rec play_turn state player =
       print_endline "Thank you for player!";
       exit 0
   | exception End_of_file ->
-      print_string "Please put in a valid hit command. \n>";
+      print_string "Please put in a valid hit command. \n> ";
       play_turn state player
-  | _ ->
+  | Move _ ->
+      print_string
+        "We are in the attack phase of the game. Please use a hit command. \n> ";
+      play_turn state player
+  | Rotate _ ->
       print_string
         "We are in the attack phase of the game. Please use a hit command. \n> ";
       play_turn state player
@@ -145,18 +171,28 @@ let rec play state =
   else if is_lost (get_inner state 2) then (
     print_endline "Player 1 has won!\nCongratulations!";
     exit 0)
-  else print_endline "\nPlayer 1 please make your turn.";
-  print_board (get_outer state 2);
-  print_string "> ";
-  let turn_1_played = play_turn state 1 in
-  print_endline "\nPlayer 2 please make your turn.";
-  print_board (get_outer state 1);
-  print_string "> ";
-  let turn_2_played = play_turn turn_1_played 2 in
-  play turn_2_played
+  else (
+    print_endline "\nPlayer 1 please make your turn.";
+    print_board (get_outer state 2);
+    print_string "> ";
+    let turn_1_played = play_turn state 1 in
+    print_endline "This is the result of your hit:";
+    print_board (get_outer turn_1_played 2);
+    if is_lost (get_inner turn_1_played 2) then (
+      print_endline "Player 1 has won!\nCongratulations!";
+      exit 0)
+    else (
+      print_endline "\nPlayer 2 please make your turn.";
+      print_board (get_outer state 1);
+      print_string "> ";
+      let turn_2_played = play_turn turn_1_played 2 in
+      print_endline "This is the result of your hit:";
+      print_board (get_outer turn_2_played 1);
+      play turn_2_played))
 
-(** [play_game f] starts the battle ship game in file [f]. *)
-let play_game f1 f2 =
+(** [start_game f] starts the battle ship game in file [f] and facilitates
+    customizing boards. *)
+let start_game f1 f2 =
   let b1 =
     try from_json (Yojson.Basic.from_file f1)
     with excepction ->
@@ -192,13 +228,12 @@ let data_dir_prefix = "data" ^ Filename.dir_sep
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
-  ANSITerminal.print_string [ ANSITerminal.blue ]
+  ANSITerminal.print_string [ ANSITerminal.cyan ]
     "\n\nWelcome to Battle Ship.\n";
-  ANSITerminal.print_string [ ANSITerminal.red ]
-    "> '-' represents an empty square\n\
-     > 'S' represents a full square\n\
-     > 'X' represents a hit\n\
-     > 'M' represents a miss\n";
+  ANSITerminal.print_string [ ANSITerminal.default ]
+    "> '-' represents an empty square\n> 'S' represents a full square\n";
+  ANSITerminal.print_string [ ANSITerminal.green ] "> 'X' represents a hit\n";
+  ANSITerminal.print_string [ ANSITerminal.red ] "> 'M' represents a miss\n";
   print_endline
     "If you see the ship's color on your board, then you have that ship in \
      your disposal. Here are the possible ships: ";
@@ -215,7 +250,7 @@ let main () =
       match read_line () with
       | exception End_of_file -> ()
       | file_name2 ->
-          play_game
+          start_game
             (data_dir_prefix ^ file_name1 ^ ".json")
             (data_dir_prefix ^ file_name2 ^ ".json"))
 
