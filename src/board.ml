@@ -89,7 +89,7 @@ let from_json (j : Yojson.Basic.t) : b =
 let make_empty board =
   let new_list =
     List.map
-      (fun t -> { x = t.x; y = t.y; state = Empty; name = t.name })
+      (fun t -> { x = t.x; y = t.y; state = Empty; name = "none" })
       board.squares
   in
   {
@@ -244,7 +244,7 @@ let rec replace_square (squares_list : t list) (target : t) (new_square : t) =
   | [] -> []
   | h :: t ->
       if h.x = target.x && h.y = target.y then new_square :: t
-      else replace_square t target new_square
+      else h :: replace_square t target new_square
 
 (**[replace_ship ship_list target new_ship] returns a new list of ships where
    the target ship, [target], is replaced by [new_ship]*)
@@ -257,20 +257,28 @@ let rec replace_ship (ship_list : Ship.t list) (target : Ship.t)
       else replace_ship t target new_ship
 
 let update (board : b) (x : int) (y : int) : b =
-  let target_square = List.nth board.squares (((y - 1) * board.width) + x) in
+  let target_square = List.nth board.squares ((y * board.width) + x) in
   let new_square =
     if target_square.state = Full || target_square.state = Hit then
       { x; y; state = Hit; name = target_square.name }
     else { x; y; state = Miss; name = target_square.name }
   in
-  let target_ship = identify_ship x y board.ships in
-  let new_ship = hit target_ship x y in
-  {
-    height = board.height;
-    width = board.width;
-    squares = replace_square board.squares target_square new_square;
-    ships = replace_ship board.ships target_ship new_ship;
-  }
+  match identify_ship x y board.ships with
+  | exception ShipNotFound ->
+      {
+        height = board.height;
+        width = board.width;
+        squares = replace_square board.squares target_square new_square;
+        ships = board.ships;
+      }
+  | target_ship ->
+      let new_ship = hit target_ship x y in
+      {
+        height = board.height;
+        width = board.width;
+        squares = replace_square board.squares target_square new_square;
+        ships = replace_ship board.ships target_ship new_ship;
+      }
 
 let rec score (board : b) (acc : int) : int =
   match board.squares with
@@ -298,7 +306,7 @@ let rec score (board : b) (acc : int) : int =
 let update_outer_board (inner_board : b) (outer_board : b) (x : int) (y : int) :
     b =
   let target_square =
-    List.nth inner_board.squares (((y - 1) * inner_board.width) + x)
+    List.nth inner_board.squares ((y * inner_board.width) + x)
   in
   let new_square =
     if target_square.state = Full || target_square.state = Hit then
