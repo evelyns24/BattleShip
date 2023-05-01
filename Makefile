@@ -36,3 +36,8 @@ doc:
 
 opendoc: doc
 	@bash opendoc.sh
+
+loc:
+	dune clean
+	cloc --by-file --include-lang=OCaml .
+	dune build
