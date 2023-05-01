@@ -46,7 +46,22 @@ let move state player ship_name x y =
     }
 
 let rotate state player ship_name x y =
-  failwith "Unimplemented : Alisha's problem"
+  if player = 1 then
+    let b1 = get_inner state 1 in
+    {
+      p1_inner = move_ship b1 ship_name rotate x y;
+      p1_outer = state.p1_outer;
+      p2_inner = state.p2_inner;
+      p2_outer = state.p2_outer;
+    }
+  else
+    let b2 = get_inner state 2 in
+    {
+      p1_inner = state.p1_inner;
+      p1_outer = state.p1_outer;
+      p2_inner = move_ship b2 ship_name rotate x y;
+      p2_outer = state.p2_outer;
+    }
 
 let hit state player x y =
   if player = 1 then
