@@ -143,11 +143,15 @@ let rec customize_board state player =
 let rec play_turn state player =
   match get_command (read_line ()) with
   | Hit (x, y) -> (
-      try hit state player x y
-      with OutOfBounds ->
-        print_string
-          "You've attacked an out of bounds square. Please try again \n> ";
-        play_turn state player)
+      try hit state player x y with
+      | OutOfBounds ->
+          print_string
+            "You've attacked an out of bounds square. Please try again \n> ";
+          play_turn state player
+      | RedundantHit ->
+          print_string
+            "You've already attacked this square. Please try again \n> ";
+          play_turn state player)
   | Quit ->
       print_endline "Thank you for playing!";
       exit 0
@@ -208,18 +212,19 @@ let start_game f1 f2 =
   let game_state = init_state b1 b2 in
   print_endline
     "\n\
-     Player 1, please begin customizing your board. Moving ships out of bounds \
-     or within 1 square of another ship will do nothing. You may use \n\
+     Player 1, please begin customizing your board. Moving \n\
+     ships out of bounds or within 1 square of another ship will \n\
+     do nothing. You may use: \n\
      move [ship_name] x y or rotate [ship_name] x y commands.";
   let new_state = customize_board game_state 1 in
   print_endline
     "\n\
-     Player 2, please begin customizing your board. You may use \n\
+     Player 2, please begin customizing your board. You may use: \n\
      Move x y or Rotate x y commands.";
   let completed_state = customize_board new_state 2 in
   print_empty_lines 100;
   print_endline
-    "We are now ready to begin. Valid commands are formated as \n\
+    "We are now ready to begin. Valid commands are formated as: \n\
      1. hit x y or \n\
      2. quit";
   play completed_state
@@ -235,8 +240,8 @@ let main () =
   ANSITerminal.print_string [ ANSITerminal.green ] "> 'X' represents a hit\n";
   ANSITerminal.print_string [ ANSITerminal.red ] "> 'M' represents a miss\n";
   print_endline
-    "If you see the ship's color on your board, then you have that ship in \
-     your disposal. Here are the possible ships: ";
+    "If you see the ship's color on your board, then you have that\n\
+     ship in your disposal. Here are the possible ships: ";
   print_ships ();
   print_endline "When you enter a file, you will see the full board";
   print_endline "Please enter the name of the board file you want to load.\n";
