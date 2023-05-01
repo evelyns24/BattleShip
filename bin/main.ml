@@ -73,6 +73,8 @@ let rec get_command (command : string) =
       | exception End_of_file -> ""
       | s -> s)
 
+(**[get_response] continues prompting the user until the response of yes, no, or
+   quit is received. *)
 let rec get_response () =
   match read_line () with
   | "quit" -> "quit"
@@ -85,6 +87,8 @@ let rec get_response () =
       print_string "\nPlease input yes, no, or quit \n> ";
       get_response ()
 
+(**[process_move state player] outputs a new state after player [player] makes a
+   move to customize their ship, either a move or a rotate command.*)
 let rec process_move state player =
   print_string "What would you like to do? \n> ";
   match get_command (read_line ()) with
@@ -114,12 +118,25 @@ and handle_customization func state player name x y =
       print_endline "You've collided with another ship. Please try again";
       process_move state player
 
+let slow_print str =
+  let my_lst = List.init (String.length str) (String.get str) in
+  let rec print_helper lst =
+    match lst with
+    | [] -> ()
+    | h :: t ->
+        Printf.printf "%c%!" h;
+        Unix.sleepf 0.05;
+        print_helper t
+  in
+  print_helper my_lst
+
 (**[customize_board state player] returns a new state after [player]'s board has
    been modified*)
 let rec customize_board state player =
-  Printf.printf "%s %!"
+  slow_print
     ("\nWelcome Player " ^ string_of_int player
    ^ "! \nThis is what your board currently looks like:");
+
   print_endline "";
   print_board (get_inner state player);
   print_endline "Reminder: Here are all of the possible ships: ";
