@@ -41,3 +41,10 @@ loc:
 	dune clean
 	cloc --by-file --include-lang=OCaml .
 	dune build
+
+bisect: bisect-clean
+	-dune exec --instrument-with bisect_ppx --force test/main.exe
+	bisect-ppx-report html
+
+bisect-clean:
+	rm -rf _coverage bisect*.coverage

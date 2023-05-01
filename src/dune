@@ -1,4 +1,6 @@
 (library
  (name game)
  (public_name Game)
- (libraries yojson ANSITerminal))
+ (libraries yojson ANSITerminal)
+ (instrumentation
+  (backend bisect_ppx)))

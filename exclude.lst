@@ -5,3 +5,4 @@ To-Do
 pitches
 teamwork_contract
 *.YAML
+bisect*.coverage
