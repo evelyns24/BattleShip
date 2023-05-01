@@ -10,6 +10,7 @@ type b
 
 exception Collide
 exception ShipNotFound
+exception RedundantHit
 
 val from_json : Yojson.Basic.t -> b
 (** [from_json b] is the board that [b] represents. [Requires]: [b] is a valid
@@ -38,7 +39,8 @@ val check_collision : b -> bool
    square of each other.*)
 
 val update : b -> int -> int -> b
-(**[update board x y] returns a new board that responds to a hit at (x,y).
+(**[update board x y] returns a new board that responds to a hit at (x,y). If
+   the targeted coordinates were already hit, then we raise [RedundantHit]
    [Requires] x, y to be ints. *)
 
 val move_ship :

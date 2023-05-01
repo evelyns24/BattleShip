@@ -24,6 +24,7 @@ module type BoardSig = sig
 
   exception Collide
   exception ShipNotFound
+  exception RedundantHit
 
   val from_json : Yojson.Basic.t -> b
   val make_empty : b -> b

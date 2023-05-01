@@ -23,6 +23,7 @@ type b = {
 
 exception Collide
 exception ShipNotFound
+exception RedundantHit
 
 (**[lst_to_int lst] takes a Yojson.Basic.t lst and converts it into a coordinate
    list of type (int * int) list*)
@@ -262,9 +263,11 @@ let update (board : b) (x : int) (y : int) : b =
   else
     let target_square = List.nth board.squares ((y * board.width) + x) in
     let new_square =
-      if target_square.state = Full || target_square.state = Hit then
+      if target_square.state = Full then
         { x; y; state = Hit; name = target_square.name }
-      else { x; y; state = Miss; name = target_square.name }
+      else if target_square.state = Empty then
+        { x; y; state = Miss; name = target_square.name }
+      else raise RedundantHit
     in
     match identify_ship x y board.ships with
     | exception ShipNotFound ->
