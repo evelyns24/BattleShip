@@ -149,7 +149,7 @@ let rec play_turn state player =
           "You've attacked an out of bounds square. Please try again \n> ";
         play_turn state player)
   | Quit ->
-      print_endline "Thank you for player!";
+      print_endline "Thank you for playing!";
       exit 0
   | exception End_of_file ->
       print_string "Please put in a valid hit command. \n> ";
