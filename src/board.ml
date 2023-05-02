@@ -255,7 +255,7 @@ let rec replace_ship (ship_list : Ship.t list) (target : Ship.t)
   | [] -> []
   | h :: t ->
       if get_name h = get_name target then new_ship :: t
-      else replace_ship t target new_ship
+      else h :: replace_ship t target new_ship
 
 let update (board : b) (x : int) (y : int) : b =
   if x < 0 || x >= get_width board || y < 0 || y >= get_height board then
