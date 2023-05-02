@@ -33,15 +33,10 @@ val get_board : b -> int -> (string * string) list list
    the board with rows of lenght w. [Requires]: length of board is divisible by
    w*)
 
-val check_collision : b -> bool
-(**[check_collision board] returns true if any ship is within a one square
-   distance of any other ship. [Raises] [Collide] if any ships are within 1
-   square of each other.*)
-
 val update : b -> int -> int -> b
-(**[update board x y] returns a new board that responds to a hit at (x,y). If
-   the targeted coordinates were already hit, then we raise [RedundantHit]
-   [Requires] x, y to be ints. *)
+(**[update board x y] returns a new board that responds to a hit at (x,y).
+   [Requires] x, y to be ints. [Raises] [OutOfBounds] if [(x,y)] is not a valid
+   point on the board.*)
 
 val move_ship :
   b ->
@@ -52,7 +47,8 @@ val move_ship :
   b
 (**[move_ship board ship_name move_func x y] returns a new board given that the
    ship named [ship_name] has been moved according to the function[move_func].
-   If the ship is moved out of bounds, the original board is returned*)
+   If the ship is moved out of bounds, the original board is returned. [Raises]
+   [Collide] if the ship collided with another ship on the board.*)
 
 val response : b -> int -> int -> bool
 (**[response board x y] returns true if the board square located at (x,y) is

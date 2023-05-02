@@ -104,10 +104,10 @@ let get_height (board : b) : int = board.height
 let get_width (board : b) : int = board.width
 
 (**[from_state state] takes state s and turns it into a string according to:
-   Empty -> "-"; Full -> "S"; Hit -> "X"; Miss -> "M" *)
+   Empty -> "∙"; Full -> "S"; Hit -> "X"; Miss -> "M" *)
 let from_state (state : s) : string =
   match state with
-  | Empty -> "-"
+  | Empty -> "∙"
   | Full -> "S"
   | Hit -> "X"
   | Miss -> "M"
@@ -220,6 +220,9 @@ let rec check_collision_h (all_ships : Ship.t list) (board : b) =
   | [] -> true
   | h :: t -> collision_h board h (Ship.location h) && check_collision_h t board
 
+(**[check_collision board] returns true if any ship is within a one square
+   distance of any other ship. [Raises] [Collide] if any ships are within 1
+   square of each other.*)
 let rec check_collision (board : b) : bool =
   not (check_collision_h board.ships board)
 
