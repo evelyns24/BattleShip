@@ -65,16 +65,18 @@ let rotate state player ship_name x y =
 
 let hit state player x y =
   if player = 1 then
+    let new_p2_inner = update state.p2_inner x y in
     {
       p1_inner = state.p1_inner;
       p1_outer = state.p1_outer;
-      p2_inner = update state.p2_inner x y;
-      p2_outer = update_outer_board state.p2_inner state.p2_outer x y;
+      p2_inner = new_p2_inner;
+      p2_outer = update_outer_board new_p2_inner;
     }
   else
+    let new_p1_inner = update state.p1_inner x y in
     {
-      p1_inner = update state.p1_inner x y;
-      p1_outer = update_outer_board state.p1_inner state.p1_outer x y;
+      p1_inner = new_p1_inner;
+      p1_outer = update_outer_board new_p1_inner;
       p2_inner = state.p2_inner;
       p2_outer = state.p2_outer;
     }

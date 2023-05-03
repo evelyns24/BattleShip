@@ -189,10 +189,12 @@ let rec remove_ship (ship_list : Ship.t list) (ship : Ship.t) =
 
 (** [coord_check board x y loc] returns false if there is a collision on a
     specific coordinate, true otherwise *)
-let coord_check (board : b) (x : int) (y : int) (loc : (int * int) list) : bool
-    =
-  if response board (x - 1) (y + 1) && not (List.mem (x - 1, y + 1) loc) then
-    false
+let coord_check (board : b) (x : int) (y : int) (ship : Ship.t)
+    (loc : (int * int) list) : bool =
+  let this_ship = identify_ship x y board.ships in
+  if response board x y && ship <> this_ship then false
+  else if response board (x - 1) (y + 1) && not (List.mem (x - 1, y + 1) loc)
+  then false
   else if response board x (y + 1) && not (List.mem (x, y + 1) loc) then false
   else if response board (x + 1) (y + 1) && not (List.mem (x + 1, y + 1) loc)
   then false
@@ -211,7 +213,7 @@ let rec collision_h (board : b) (s : Ship.t) (loc : (int * int) list) : bool =
   match loc with
   | [] -> true
   | (a, b) :: t ->
-      coord_check board a b (Ship.location s) && collision_h board s t
+      coord_check board a b s (Ship.location s) && collision_h board s t
 
 (** [check_collision_h all_ships board] checks all of the ships on the board for
     collisions. returns false if there is a collision, true otherwise *)
@@ -260,6 +262,111 @@ let rec replace_ship (ship_list : Ship.t list) (target : Ship.t)
       if get_name h = get_name target then new_ship :: t
       else h :: replace_ship t target new_ship
 
+(**[in_bounds board x y] returns true if the points (x,y) is in bounds of the
+   board*)
+let in_bounds board x y =
+  not (x < 0 || x >= get_width board || y < 0 || y >= get_height board)
+
+(**[get_square board point] returns the square at [point]*)
+let get_square board point =
+  let x, y = point in
+  List.nth board.squares ((y * board.width) + x)
+
+(**[get_square_border board x y loc] returns a list of coordinates that surround
+   the point ([x],[y]) if this point is not already in [loc]*)
+let get_square_border (board : b) (x : int) (y : int) (loc : (int * int) list) =
+  let ret = [] in
+  let top_left =
+    if in_bounds board (x - 1) (y + 1) && not (List.mem (x - 1, y + 1) loc) then
+      get_square board (x - 1, y + 1) :: ret
+    else ret
+  in
+  let top_middle =
+    if in_bounds board x (y + 1) && not (List.mem (x, y + 1) loc) then
+      get_square board (x, y + 1) :: top_left
+    else top_left
+  in
+  let top_right =
+    if in_bounds board (x + 1) (y + 1) && not (List.mem (x + 1, y + 1) loc) then
+      get_square board (x + 1, y + 1) :: top_middle
+    else top_middle
+  in
+  let left =
+    if in_bounds board (x + 1) y && not (List.mem (x + 1, y) loc) then
+      get_square board (x + 1, y) :: top_right
+    else top_right
+  in
+  let bottom_left =
+    if in_bounds board (x + 1) (y - 1) && not (List.mem (x + 1, y - 1) loc) then
+      get_square board (x + 1, y - 1) :: left
+    else left
+  in
+  let right =
+    if in_bounds board x (y - 1) && not (List.mem (x, y - 1) loc) then
+      get_square board (x, y - 1) :: bottom_left
+    else bottom_left
+  in
+  let bottom_right =
+    if in_bounds board (x - 1) (y - 1) && not (List.mem (x - 1, y - 1) loc) then
+      get_square board (x - 1, y - 1) :: right
+    else right
+  in
+  let bottom_middle =
+    if in_bounds board (x - 1) y && not (List.mem (x - 1, y) loc) then
+      get_square board (x - 1, y) :: bottom_right
+    else bottom_right
+  in
+  bottom_middle
+
+(**[get_border board ship_coords] returns a coordinate list of the border around
+   a ship with [ship_coords]. May contain duplicates*)
+let rec get_border (board : b) (ship_coords : (int * int) list) =
+  match ship_coords with
+  | [] -> []
+  | (a, b) :: t -> get_square_border board a b ship_coords @ get_border board t
+
+(**[replace_all squares border] replaces all of the squares in [squares] that
+   are also in [border] with an identical square except for a new state, Miss*)
+let rec replace_all (squares : t list) = function
+  | [] -> squares
+  | h :: t ->
+      if h.state = Hit then replace_all squares t
+      else
+        replace_all
+          (replace_square squares h
+             { x = h.x; y = h.y; state = Miss; name = h.name })
+          t
+
+let pp_list pp_elt lst =
+  let pp_elts lst =
+    let rec loop n acc = function
+      | [] -> acc
+      | [ h ] -> acc ^ pp_elt h
+      | h1 :: (h2 :: t as t') ->
+          if n = 100 then acc ^ "..." (* stop printing long list *)
+          else loop (n + 1) (acc ^ pp_elt h1 ^ "; ") t'
+    in
+    loop 0 "" lst
+  in
+  "[" ^ pp_elts lst ^ "]"
+
+let pp_square s = "(" ^ string_of_int s.x ^ ", " ^ string_of_int s.y ^ ")"
+
+let cmp_squares s1 s2 =
+  if s1.x = s2.x && s1.y = s2.y then 0
+  else if s1.x = s2.x && s1.y < s2.y then ~-1
+  else if s1.x = s2.x && s1.y > s2.y then 1
+  else if s1.x < s2.x && s1.y < s2.y then ~-3
+  else if s1.x < s2.x && s1.y > s2.y then ~-2
+  else if s1.x > s2.x && s1.y < s2.y then 2
+  else 3
+
+let reveal_border (board : b) (squares : t list) (ship : Ship.t) =
+  let border_squares =
+    List.sort_uniq cmp_squares (get_border board (location ship))
+  in
+  replace_all squares border_squares
+
 let update (board : b) (x : int) (y : int) : b =
   if x < 0 || x >= get_width board || y < 0 || y >= get_height board then
     raise OutOfBounds
@@ -282,12 +389,23 @@ let update (board : b) (x : int) (y : int) : b =
         }
     | target_ship ->
         let new_ship = sunk (hit target_ship x y) in
-        {
-          height = board.height;
-          width = board.width;
-          squares = replace_square board.squares target_square new_square;
-          ships = replace_ship board.ships target_ship new_ship;
-        }
+        let new_squares =
+          replace_square board.squares target_square new_square
+        in
+        if not (get_status new_ship) then
+          {
+            height = board.height;
+            width = board.width;
+            squares = new_squares;
+            ships = replace_ship board.ships target_ship new_ship;
+          }
+        else
+          {
+            height = board.height;
+            width = board.width;
+            squares = reveal_border board new_squares new_ship;
+            ships = replace_ship board.ships target_ship new_ship;
+          }
 
 let rec score (board : b) (acc : int) : int =
   match board.squares with
@@ -315,22 +433,17 @@ let rec score (board : b) (acc : int) : int =
 let is_lost (board : b) : bool =
   List.fold_left (fun acc ship -> acc && get_status ship) true board.ships
 
-let update_outer_board (inner_board : b) (outer_board : b) (x : int) (y : int) :
-    b =
-  if x < 0 || x >= get_width inner_board || y < 0 || y >= get_height inner_board
-  then raise OutOfBounds
-  else
-    let target_square =
-      List.nth inner_board.squares ((y * inner_board.width) + x)
-    in
-    let new_square =
-      if target_square.state = Full || target_square.state = Hit then
-        { x; y; state = Hit; name = target_square.name }
-      else { x; y; state = Miss; name = target_square.name }
-    in
-    {
-      height = outer_board.height;
-      width = outer_board.width;
-      squares = replace_square outer_board.squares target_square new_square;
-      ships = outer_board.ships;
-    }
+let rec new_outer_squares (inner_board_squares : t list) =
+  match inner_board_squares with
+  | [] -> []
+  | { x; y; state; name } :: t ->
+      let new_state = if state = Full then Empty else state in
+      { x; y; state = new_state; name = "none" } :: new_outer_squares t
+
+let update_outer_board (inner_board : b) : b =
+  {
+    height = inner_board.height;
+    width = inner_board.width;
+    squares = new_outer_squares inner_board.squares;
+    ships = [];
+  }

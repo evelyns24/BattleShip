@@ -47,8 +47,9 @@ val move_ship :
   b
 (**[move_ship board ship_name move_func x y] returns a new board given that the
    ship named [ship_name] has been moved according to the function[move_func].
-   If the ship is moved out of bounds, the original board is returned. [Raises]
-   [Collide] if the ship collided with another ship on the board.*)
+   [Raises] [Collide] if the ship is within a one-square border with another
+   ship on the board. [Raises] [OutofBounds] if the ship is moved out of the
+   bounds of the board*)
 
 val response : b -> int -> int -> bool
 (**[response board x y] returns true if the board square located at (x,y) is
@@ -61,6 +62,6 @@ val score : b -> int -> int
 val is_lost : b -> bool
 (**[is_lost board] returns true if all of the ships on this board are sunk*)
 
-val update_outer_board : b -> b -> int -> int -> b
+val update_outer_board : b -> b
 (** [update_outer_board inner_board outer_board x y] returns a new outer board
     after a player hits board [inner_board] at ([x,y]) *)

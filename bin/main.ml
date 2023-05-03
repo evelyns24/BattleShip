@@ -11,36 +11,57 @@ let rec print_row (row : (string * string) list) =
   match row with
   | [] -> print_string "\n"
   | (symbol, name) :: t ->
-      if symbol = "M" then ANSITerminal.print_string [ ANSITerminal.red ] symbol
+      if symbol = "M" then
+        ANSITerminal.print_string [ ANSITerminal.red ] ("  " ^ symbol ^ " ")
       else if symbol = "X" then
-        ANSITerminal.print_string [ ANSITerminal.green ] symbol
-      else if name = "none" then print_string symbol
+        ANSITerminal.print_string [ ANSITerminal.green ] ("  " ^ symbol ^ " ")
+      else if name = "none" then print_string ("  " ^ symbol ^ " ")
       else if name = "Aircraft_Carrier_1" then
-        ANSITerminal.print_string [ ANSITerminal.white ] symbol
+        ANSITerminal.print_string [ ANSITerminal.white ] ("  " ^ symbol ^ " ")
       else if name = "Aircraft_Carrier_2" then
-        ANSITerminal.print_string [ ANSITerminal.blue ] symbol
+        ANSITerminal.print_string [ ANSITerminal.blue ] ("  " ^ symbol ^ " ")
       else if name = "Destroyer" then
-        ANSITerminal.print_string [ ANSITerminal.magenta ] symbol
+        ANSITerminal.print_string [ ANSITerminal.magenta ] ("  " ^ symbol ^ " ")
       else if name = "Submarine_1" then
-        ANSITerminal.print_string [ ANSITerminal.red ] symbol
+        ANSITerminal.print_string [ ANSITerminal.red ] ("  " ^ symbol ^ " ")
       else if name = "Submarine_2" then
-        ANSITerminal.print_string [ ANSITerminal.cyan ] symbol
+        ANSITerminal.print_string [ ANSITerminal.cyan ] ("  " ^ symbol ^ " ")
       else if name = "Cruiser" then
-        ANSITerminal.print_string [ ANSITerminal.green ] symbol
+        ANSITerminal.print_string [ ANSITerminal.green ] ("  " ^ symbol ^ " ")
       else if name = "Frigate" then
-        ANSITerminal.print_string [ ANSITerminal.yellow ] symbol;
+        ANSITerminal.print_string [ ANSITerminal.yellow ] ("  " ^ symbol ^ " ");
       print_row t
 
+(**[pp_int num] returns the num as string of length 3, and pads with 0s as
+   needed*)
+let pp_int (num : int) : string =
+  let num_str = string_of_int num in
+  match String.length num_str with
+  | 3 -> num_str
+  | 2 -> "0" ^ num_str
+  | 1 -> "00" ^ num_str
+  | _ -> failwith "impossible"
+
 (**[print_board board] prints the board. Requires [board] is a string list list.*)
-let rec print_board_h (board : (string * string) list list) =
+let rec print_board_h (height : int) (board : (string * string) list list) =
   match board with
   | [] -> print_string "\n"
   | h :: t ->
+      print_string (pp_int height ^ "|");
       print_row h;
-      print_board_h t
+      print_board_h (height - 1) t
+
+let rec string_x_axis width =
+  match width with
+  | 0 -> "     000"
+  | n -> string_x_axis (n - 1) ^ " " ^ pp_int n
 
 (**[print_board board] prints [board]*)
-let print_board board = board |> get_width |> get_board board |> print_board_h
+let print_board board =
+  board |> get_width |> get_board board |> print_board_h (get_height board - 1);
+  ANSITerminal.move_cursor 0 ~-1;
+  get_width board - 1 |> string_x_axis |> print_string;
+  print_endline "\n"
 
 (**[print_ships ()] prints the ships in their colors*)
 let print_ships () =
@@ -58,20 +79,34 @@ let print_empty_lines n =
     print_endline ""
   done
 
-(**[get_command command] attempts to parse the command*)
-let rec get_command (command : string) =
+(**[get_command command state ] attempts to parse the command. We only except
+   hit commands if state is true, and rotate/move commands if state is false*)
+let rec get_command (command : string) (state : bool) =
   try parse command
   with excepction ->
-    print_string
-      "Please input a valid command. Commands can be formated as \n\
-       1. move [ship_name] x y \n\
-       2. rotate [ship_name] x y \n\
-       3. hit x y \n\
-       > ";
-    get_command
-      (match read_line () with
-      | exception End_of_file -> ""
-      | s -> s)
+    if state then (
+      print_string
+        "Please input a valid command. Commands can be formated as \n\
+         1. hit x y \n\
+         2. quit \n\
+         > ";
+      get_command
+        (match read_line () with
+        | exception End_of_file -> ""
+        | s -> s)
+        state)
+    else (
+      print_string
+        "Please input a valid command. Commands can be formated as \n\
+         1. move [ship_name] x y \n\
+         2. rotate [ship_name] x y \n\
+         3. quit \n\
+         > ";
+      get_command
+        (match read_line () with
+        | exception End_of_file -> ""
+        | s -> s)
+        state)
 
 (**[get_response] continues prompting the user until the response of yes, no, or
    quit is received. *)
@@ -91,7 +126,7 @@ let rec get_response () =
    move to customize their ship, either a move or a rotate command.*)
 let rec process_move state player =
   print_string "What would you like to do? \n> ";
-  match get_command (read_line ()) with
+  match get_command (read_line ()) false with
   | Hit _ ->
       print_string
         "This is not the attack phase of the game. Please input a move or \
@@ -125,7 +160,7 @@ let slow_print str =
     | [] -> ()
     | h :: t ->
         Printf.printf "%c%!" h;
-        Unix.sleepf 0.05;
+        Unix.sleepf 0.02;
         print_helper t
   in
   print_helper my_lst
@@ -133,10 +168,7 @@ let slow_print str =
 (**[customize_board state player] returns a new state after [player]'s board has
    been modified*)
 let rec customize_board state player =
-  slow_print
-    ("\nWelcome Player " ^ string_of_int player
-   ^ "! \nThis is what your board currently looks like:");
-
+  slow_print "This is what your board currently looks like:";
   print_endline "";
   print_board (get_inner state player);
   print_endline "Reminder: Here are all of the possible ships: ";
@@ -158,7 +190,7 @@ let rec customize_board state player =
 (**[play_turn state player] returns the state of the game after player [player]
    has made their turn*)
 let rec play_turn state player =
-  match get_command (read_line ()) with
+  match get_command (read_line ()) true with
   | Hit (x, y) -> (
       try hit state player x y with
       | OutOfBounds ->
@@ -193,7 +225,7 @@ let rec play state =
     print_endline "Player 1 has won!\nCongratulations!";
     exit 0)
   else (
-    print_endline "\nPlayer 1 please make your turn.";
+    slow_print "\nPlayer 1 please make your turn.\n";
     print_board (get_outer state 2);
     print_string "> ";
     let turn_1_played = play_turn state 1 in
@@ -203,7 +235,7 @@ let rec play state =
       print_endline "Player 1 has won!\nCongratulations!";
       exit 0)
     else (
-      print_endline "\nPlayer 2 please make your turn.";
+      slow_print "\nPlayer 2 please make your turn.\n";
       print_board (get_outer state 1);
       print_string "> ";
       let turn_2_played = play_turn turn_1_played 2 in
@@ -233,11 +265,13 @@ let start_game f1 f2 =
      ships out of bounds or within 1 square of another ship will \n\
      do nothing. You may use: \n\
      move [ship_name] x y or rotate [ship_name] x y commands.";
+  slow_print "\nWelcome Player 1!\n";
   let new_state = customize_board game_state 1 in
   print_endline
     "\n\
      Player 2, please begin customizing your board. You may use: \n\
      Move x y or Rotate x y commands.";
+  slow_print "\nWelcome Player 2!\n";
   let completed_state = customize_board new_state 2 in
   print_empty_lines 100;
   print_endline
