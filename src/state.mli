@@ -34,3 +34,7 @@ val rotate : t -> int -> string -> int -> int -> t
 val hit : t -> int -> int -> int -> t
 (**[hit player  x y] returns a new state where player [player] has made a hit on
    the opponet's board at point ([x], [y])*)
+
+val is_hit : t -> int -> int -> int -> bool
+(**[is_hit state player x y] returns true if [player] just made a hit on their
+   opponent's board at point ([x], [y]). *)

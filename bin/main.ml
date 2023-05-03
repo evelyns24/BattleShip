@@ -187,22 +187,40 @@ let rec customize_board state player =
       customize_board new_state player
   | _ -> failwith "impossible"
 
+(**[get_other_player player] returns the other player*)
+let get_other_player (player : int) : int = if player = 1 then 2 else 1
+
 (**[play_turn state player] returns the state of the game after player [player]
    has made their turn*)
 let rec play_turn state player =
   match get_command (read_line ()) true with
   | Hit (x, y) -> (
-      try hit state player x y with
-      | OutOfBounds ->
+      match hit state player x y with
+      | exception OutOfBounds ->
           print_string
             "You've attacked an out of bounds square. Please try again \n> ";
           play_turn state player
-      | RedundantHit ->
-          print_string
-            "You've already attacked this square. Please try again \n> ";
-          play_turn state player)
+      | exception RedundantHit ->
+          print_string "This square is already revealed. Please try again \n> ";
+          play_turn state player
+      | new_state ->
+          if is_hit state player x y then (
+            print_endline "BOOM! You've made a hit. ";
+            print_board (get_outer new_state (get_other_player player));
+            if is_lost (get_inner new_state (get_other_player player)) then (
+              print_endline
+                ("Player" ^ string_of_int player
+               ^ " has won!\n\
+                  Congratulations! \n\
+                  Here is the winner's inner board:");
+              print_board (get_inner new_state player);
+              exit 0)
+            else (
+              print_string "Please hit again\n> ";
+              play_turn new_state player))
+          else new_state)
   | Quit ->
-      print_endline "Thank you for playing!";
+      print_endline "quitting \nThank you for playing!";
       exit 0
   | exception End_of_file ->
       print_string "Please put in a valid hit command. \n> ";
@@ -219,17 +237,21 @@ let rec play_turn state player =
 (**[play state player] facilitates the game. Player [player] starts*)
 let rec play state =
   if is_lost (get_inner state 1) then (
-    print_endline "Player 2 has won!\nCongratulations!";
+    print_endline
+      "Player 2 has won!\nCongratulations! \nHere is Player 2's inner board:";
+    print_board (get_inner state 2);
     exit 0)
   else if is_lost (get_inner state 2) then (
-    print_endline "Player 1 has won!\nCongratulations!";
+    print_endline
+      "Player 1 has won!\nCongratulations! \nHere is Player 1's inner board:";
+    print_board (get_inner state 1);
     exit 0)
   else (
     slow_print "\nPlayer 1 please make your turn.\n";
     print_board (get_outer state 2);
     print_string "> ";
     let turn_1_played = play_turn state 1 in
-    print_endline "This is the result of your hit:";
+    print_endline "This is the result of your turn:";
     print_board (get_outer turn_1_played 2);
     if is_lost (get_inner turn_1_played 2) then (
       print_endline "Player 1 has won!\nCongratulations!";
@@ -239,9 +261,23 @@ let rec play state =
       print_board (get_outer state 1);
       print_string "> ";
       let turn_2_played = play_turn turn_1_played 2 in
-      print_endline "This is the result of your hit:";
+      print_endline "This is the result of your turn:";
       print_board (get_outer turn_2_played 1);
       play turn_2_played))
+
+(**[string_of_rule_spiel player] returns a string of the move ship rules
+   addressed to player [player]*)
+let string_of_rule_spiel (player : int) =
+  "Player " ^ string_of_int player
+  ^ ", please begin customizing your board. Moving \n\
+     ships out of bounds or within 1 square of another ship will \n\
+     do nothing. You may use: \n\
+     move [ship_name] x y or rotate [ship_name] x y commands.\n\
+     Please note that move [ship_name] x y will move the ship named \n\
+     [ship_name] to the right by [x] if x > 0 and to the left by [x] \n\
+     if x < 0, and up by [y] if y > 0 and down by [y] if y < 0. \n\
+     rotate [ship_name] x y will rotate the ship named [ship_name] 90\n\
+     degrees counterclockwise about the point (x,y)\n"
 
 (** [start_game f] starts the battle ship game in file [f] and facilitates
     customizing boards. *)
@@ -259,25 +295,26 @@ let start_game f1 f2 =
       exit 0
   in
   let game_state = init_state b1 b2 in
-  print_endline
-    "\n\
-     Player 1, please begin customizing your board. Moving \n\
-     ships out of bounds or within 1 square of another ship will \n\
-     do nothing. You may use: \n\
-     move [ship_name] x y or rotate [ship_name] x y commands.";
+  slow_print (string_of_rule_spiel 1);
   slow_print "\nWelcome Player 1!\n";
   let new_state = customize_board game_state 1 in
-  print_endline
-    "\n\
-     Player 2, please begin customizing your board. You may use: \n\
-     Move x y or Rotate x y commands.";
+  print_empty_lines 100;
+  slow_print (string_of_rule_spiel 2);
   slow_print "\nWelcome Player 2!\n";
   let completed_state = customize_board new_state 2 in
   print_empty_lines 100;
-  print_endline
-    "We are now ready to begin. Valid commands are formated as: \n\
-     1. hit x y or \n\
-     2. quit";
+  slow_print
+    "We are now ready to begin. The rules are simple. Each player will take \
+     turns \n\
+     making command. You will be continuously prompted until a valid command \
+     is made\n\
+     Valid commands are formated as: \n\
+     1. hit x y such that (x, y) has not already been revealed and is not out \
+     of bounds \n\
+     2. quit\n\
+     In the event of a hit, that player will keep attacking until they miss. \n\
+     Once a ship is fully sunk, it and its border grid points are revealed and \n\
+     hitting those squares becomes redundant. \n";
   play completed_state
 
 let data_dir_prefix = "data" ^ Filename.dir_sep

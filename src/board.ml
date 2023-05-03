@@ -337,21 +337,8 @@ let rec replace_all (squares : t list) = function
              { x = h.x; y = h.y; state = Miss; name = h.name })
           t
 
-let pp_list pp_elt lst =
-  let pp_elts lst =
-    let rec loop n acc = function
-      | [] -> acc
-      | [ h ] -> acc ^ pp_elt h
-      | h1 :: (h2 :: t as t') ->
-          if n = 100 then acc ^ "..." (* stop printing long list *)
-          else loop (n + 1) (acc ^ pp_elt h1 ^ "; ") t'
-    in
-    loop 0 "" lst
-  in
-  "[" ^ pp_elts lst ^ "]"
-
-let pp_square s = "(" ^ string_of_int s.x ^ ", " ^ string_of_int s.y ^ ")"
-
+(**[cmp_squares s1 s2] returns different values based on the x and y coords of
+   the two squares*)
 let cmp_squares s1 s2 =
   if s1.x = s2.x && s1.y = s2.y then 0
   else if s1.x = s2.x && s1.y < s2.y then ~-1
@@ -361,6 +348,8 @@ let cmp_squares s1 s2 =
   else if s1.x > s2.x && s1.y < s2.y then 2
   else 3
 
+(**[reveal_border board squares ship] returns a list of squares where all of the
+   border squares around ship [ship] are revealed.*)
 let reveal_border (board : b) (squares : t list) (ship : Ship.t) =
   let border_squares =
     List.sort_uniq cmp_squares (get_border board (location ship))

@@ -80,3 +80,7 @@ let hit state player x y =
       p2_inner = state.p2_inner;
       p2_outer = state.p2_outer;
     }
+
+let is_hit state player x y =
+  if player = 1 then response state.p2_inner x y
+  else response state.p1_inner x y
