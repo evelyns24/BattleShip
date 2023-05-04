@@ -209,7 +209,7 @@ let rec play_turn state player =
             print_board (get_outer new_state (get_other_player player));
             if is_lost (get_inner new_state (get_other_player player)) then (
               print_endline
-                ("Player" ^ string_of_int player
+                ("Player " ^ string_of_int player
                ^ " has won!\n\
                   Congratulations! \n\
                   Here is the winner's inner board:");
