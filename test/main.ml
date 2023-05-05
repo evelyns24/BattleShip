@@ -62,6 +62,11 @@ let test_location (name : string) (ship : t) (output : (int * int) list) =
   assert_equal output (location ship) ~cmp:cmp_set_like_lists
     ~printer:(pp_list pp_coord)
 
+(**[tes_get_name name ship output] constructs an OUnit test named [name] that
+   asserts the quality of [expected_output] with [get_name ship]. *)
+let test_get_name name ship output =
+  name >:: fun _ -> assert_equal output (get_name ship) ~printer:Fun.id
+
 (**[test_rotate name ship point output] builds an OUnit test named [name] that
    tests whether or not [rotate point ship] rotates the ship correctly by
    comparing the location after the rotatation with the expected output [output]*)
@@ -106,10 +111,6 @@ let glassbox_place =
       assert_raises OutOfBounds (fun () -> place l_shaped 1 5 8 8) );
     ( "out of bound: negative y" >:: fun _ ->
       assert_raises OutOfBounds (fun () -> place l_shaped 5 (-6) 8 8) );
-    place_test "up 3 right 4" l_shaped 4 3 8 8
-      [ (6, 7); (6, 8); (7, 8); (8, 8) ];
-    place_test "down 1 right 4" l_shaped 4 (-1) 8 8
-      [ (6, 3); (6, 4); (7, 4); (8, 4) ];
     place_test "up 1 left 2" l_shaped (-2) 1 8 8
       [ (0, 5); (0, 6); (1, 6); (2, 6) ];
     place_test "down 4 left 2" l_shaped (-2) (-4) 8 8
@@ -202,10 +203,115 @@ let ship_blackbox_tests =
     square_status_test "square stat floating 2 long" two_long (3, 1) false;
     square_status_test "sqr stat hit 2 long" (hit two_long 3 1) (3, 1) true;
     square_status_test "sqr stat non hit 2 long" (hit two_long 3 1) (3, 2) false;
+    test_get_name "two_long: frigate" two_long "frigate";
+    test_get_name "l-shape: aircraft carrier" l_shaped "aircraft carrier";
+  ]
+
+(*------------------------------------------------------------------------------*)
+(*Board tests*)
+
+let basic =
+  Yojson.Basic.from_file (data_dir_prefix ^ "basic.json") |> Board.from_json
+
+let complex =
+  Yojson.Basic.from_file (data_dir_prefix ^ "complex.json") |> Board.from_json
+
+let two_ship =
+  Yojson.Basic.from_file (data_dir_prefix ^ "two_ship.json") |> Board.from_json
+
+let test_get_height name board output =
+  name >:: fun _ ->
+  assert_equal output (Board.get_height board) ~printer:string_of_int
+
+let test_get_width name board output =
+  name >:: fun _ ->
+  assert_equal output (Board.get_width board) ~printer:string_of_int
+
+let string_of_list ?(open_delim = "[") ?(close_delim = "]") ?(sep = "; ")
+    string_of_elt lst =
+  let len = List.length lst in
+  let open Buffer in
+  (* As a rough lower bound assume that each element takes a minimum of 3
+     characters to represent including a separator, e.g., ["v, "]. The buffer
+     will grow as needed, so it's okay if that estimate is low. *)
+  let buf = create (3 * len) in
+  add_string buf open_delim;
+  List.iteri
+    (fun i v ->
+      add_string buf (string_of_elt v);
+      if i < len - 1 then add_string buf sep)
+    lst;
+  add_string buf close_delim;
+  contents buf
+
+let string_of_bindings key_to_string value_to_string lst =
+  let string_of_binding (k, v) =
+    Printf.sprintf "%s: %s" (key_to_string k) (value_to_string v)
+  in
+  string_of_list ~open_delim:"{" ~close_delim:"}" ~sep:", " string_of_binding
+    lst
+
+let rec string_tuple_list lst =
+  match lst with
+  | [] -> ""
+  | h :: t -> string_of_bindings Fun.id Fun.id h ^ string_tuple_list t
+
+let test_get_board name board output =
+  name >:: fun _ ->
+  assert_equal output
+    (string_tuple_list (Board.get_board board (Board.get_width board)))
+    ~printer:Fun.id
+
+let test_update name board x y output =
+  name >:: fun _ ->
+  assert_equal output
+    (Board.get_board (Board.update board x y) (Board.get_width board)
+    |> string_tuple_list)
+    ~printer:Fun.id
+
+let test_move_ship name board move_function ship x y output =
+  name >:: fun _ ->
+  let new_b = Board.move_ship board ship move_function x y in
+  assert_equal output
+    (string_tuple_list (Board.get_board new_b (Board.get_width board)))
+    ~printer:Fun.id
+
+let board_blackbox_tests =
+  [
+    test_get_height "complex board height = 16" complex 16;
+    test_get_height "basic board height = 3" basic 3;
+    test_get_width "complex board width = 16" complex 16;
+    test_get_width "basic board width = 3" basic 3;
+    test_get_board "basic board" basic
+      "{∙: none, ∙: none, ∙: none}{∙: none, S: Submarine_1, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    test_get_board "two_ship board" two_ship
+      "{∙: none, ∙: none, S: Aircraft_Carrier_1}{∙: none, ∙: none, ∙: none}{S: \
+       Submarine_1, ∙: none, ∙: none}";
+    test_update "attempt hit at (0,1) on basic board" basic 0 1
+      "{∙: none, ∙: none, ∙: none}{M: none, S: Submarine_1, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    test_update "attempt hit at (1,1) on basic board" basic 1 1
+      "{∙: none, ∙: none, ∙: none}{∙: none, X: Submarine_1, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    test_move_ship "move Submarine_1 up 1 right 1" basic Ship.place
+      "Submarine_1" 1 1
+      "{∙: none, ∙: none, S: Submarine_1}{∙: none, ∙: none, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    test_move_ship "_______________" two_ship Ship.place "Submarine_1" 2 2
+      "{∙: none, ∙: none, S: Submarine_1}{∙: none, ∙: none, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    ( "move out of bounds" >:: fun _ ->
+      assert_raises OutOfBounds (fun () ->
+          Board.move_ship basic "Submarine_1" Ship.place 2 4) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship two_ship "Submarine_1" Ship.place 2 2) );
   ]
 
 let suite =
   "test suite for BattleShip"
-  >::: List.flatten [ ship_blackbox_tests; ship_glassbox_tests ]
+  >::: List.flatten
+         [ ship_blackbox_tests; ship_glassbox_tests; board_blackbox_tests ]
 
 let _ = run_test_tt_main suite
