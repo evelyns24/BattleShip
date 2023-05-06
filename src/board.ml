@@ -272,6 +272,17 @@ let get_square board point =
   let x, y = point in
   List.nth board.squares ((y * board.width) + x)
 
+(**[cmp_squares s1 s2] returns different values based on the x and y coords of
+   the two squares*)
+let cmp_squares s1 s2 =
+  if s1.x = s2.x && s1.y = s2.y then 0
+  else if s1.x = s2.x && s1.y < s2.y then ~-1
+  else if s1.x = s2.x && s1.y > s2.y then 1
+  else if s1.x < s2.x && s1.y < s2.y then ~-3
+  else if s1.x < s2.x && s1.y > s2.y then ~-2
+  else if s1.x > s2.x && s1.y < s2.y then 2
+  else 3
+
 (**[get_square_border board x y loc] returns a list of coordinates that surround
    the point ([x],[y]) if this point is not already in [loc]*)
 let get_square_border (board : b) (x : int) (y : int) (loc : (int * int) list) =
@@ -318,12 +329,14 @@ let get_square_border (board : b) (x : int) (y : int) (loc : (int * int) list) =
   in
   bottom_middle
 
-(**[get_border board ship_coords] returns a coordinate list of the border around
-   a ship with [ship_coords]. May contain duplicates*)
-let rec get_border (board : b) (ship_coords : (int * int) list) =
-  match ship_coords with
+(**[get_border board ship_coords acc] returns a coordinate list of the border
+   around a ship with [ship_coords]. Return may contain duplicates*)
+let rec get_border (board : b) (ship_coords : (int * int) list)
+    (acc : (int * int) list) : t list =
+  match acc with
   | [] -> []
-  | (a, b) :: t -> get_square_border board a b ship_coords @ get_border board t
+  | (a, b) :: t ->
+      get_square_border board a b ship_coords @ get_border board ship_coords t
 
 (**[replace_all squares border] replaces all of the squares in [squares] that
    are also in [border] with an identical square except for a new state, Miss*)
@@ -337,22 +350,12 @@ let rec replace_all (squares : t list) = function
              { x = h.x; y = h.y; state = Miss; name = h.name })
           t
 
-(**[cmp_squares s1 s2] returns different values based on the x and y coords of
-   the two squares*)
-let cmp_squares s1 s2 =
-  if s1.x = s2.x && s1.y = s2.y then 0
-  else if s1.x = s2.x && s1.y < s2.y then ~-1
-  else if s1.x = s2.x && s1.y > s2.y then 1
-  else if s1.x < s2.x && s1.y < s2.y then ~-3
-  else if s1.x < s2.x && s1.y > s2.y then ~-2
-  else if s1.x > s2.x && s1.y < s2.y then 2
-  else 3
-
 (**[reveal_border board squares ship] returns a list of squares where all of the
    border squares around ship [ship] are revealed.*)
 let reveal_border (board : b) (squares : t list) (ship : Ship.t) =
   let border_squares =
-    List.sort_uniq cmp_squares (get_border board (location ship))
+    List.sort_uniq cmp_squares
+      (get_border board (location ship) (location ship))
   in
   replace_all squares border_squares
 
