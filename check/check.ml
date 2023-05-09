@@ -31,6 +31,7 @@ module type BoardSig = sig
   val get_height : b -> int
   val get_width : b -> int
   val get_board : b -> int -> (string * string) list list
+  val response : b -> int -> int -> bool
 
   val move_ship :
     b ->
@@ -41,7 +42,6 @@ module type BoardSig = sig
     b
 
   val update : b -> int -> int -> b
-  val response : b -> int -> int -> bool
   val score : b -> int -> int
   val is_lost : b -> bool
   val update_outer_board : b -> b

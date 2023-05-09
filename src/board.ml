@@ -164,6 +164,8 @@ let rec response (board : b) (x : int) (y : int) : bool =
           }
           x y
 
+(**[get_ship board ship_name] returns the ship named [ship_name] in [board].
+   Raises [ShipNotFound] if there is no ship named [ship_name] in [board]*)
 let rec get_ship (board : b) (ship_name : string) =
   match board.ships with
   | [] -> raise ShipNotFound
@@ -425,6 +427,8 @@ let rec score (board : b) (acc : int) : int =
 let is_lost (board : b) : bool =
   List.fold_left (fun acc ship -> acc && get_status ship) true board.ships
 
+(**[new_outer_squares inner_board_squares] returns a set of squares that
+   represent an outer board based on [inner_board_squares]*)
 let rec new_outer_squares (inner_board_squares : t list) =
   match inner_board_squares with
   | [] -> []

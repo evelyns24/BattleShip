@@ -17,6 +17,8 @@ type command =
 exception Empty
 exception Malformed
 
+(**[is_int x] returns true if x is an integer represented as a string, and
+   raises Malformed otherwise*)
 let is_int x = try int_of_string x with Failure e -> raise Malformed
 
 let parse str =

@@ -33,10 +33,9 @@ val get_board : b -> int -> (string * string) list list
    the board with rows of lenght w. [Requires]: length of board is divisible by
    w*)
 
-val update : b -> int -> int -> b
-(**[update board x y] returns a new board that responds to a hit at (x,y).
-   [Requires] x, y to be ints. [Raises] [OutOfBounds] if [(x,y)] is not a valid
-   point on the board.*)
+val response : b -> int -> int -> bool
+(**[response board x y] returns true if the board square located at (x,y) is
+   Full or Hit*)
 
 val move_ship :
   b ->
@@ -51,9 +50,10 @@ val move_ship :
    ship on the board. [Raises] [OutofBounds] if the ship is moved out of the
    bounds of the board*)
 
-val response : b -> int -> int -> bool
-(**[response board x y] returns true if the board square located at (x,y) is
-   Full or Hit*)
+val update : b -> int -> int -> b
+(**[update board x y] returns a new board that responds to a hit at (x,y).
+   [Requires] x, y to be ints. [Raises] [OutOfBounds] if [(x,y)] is not a valid
+   point on the board.*)
 
 val score : b -> int -> int
 (**[score board acc] returns the score associated with this board, essentially
