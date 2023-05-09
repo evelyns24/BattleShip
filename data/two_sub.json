@@ -1,0 +1,24 @@
+{
+  "height": 4,
+  "width": 4,
+  "ships": [
+    {
+      "name": "Submarine_1",
+      "location": [
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "Submarine_2",
+      "location": [
+        [
+          2,
+          2
+        ]
+      ]
+    }
+  ]
+}

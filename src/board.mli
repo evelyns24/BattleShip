@@ -48,12 +48,13 @@ val move_ship :
    ship named [ship_name] has been moved according to the function[move_func].
    [Raises] [Collide] if the ship is within a one-square border with another
    ship on the board. [Raises] [OutofBounds] if the ship is moved out of the
-   bounds of the board*)
+   bounds of the board. [Raises] [ShipNotFound] if there is no ship named
+   [ship_name] in [board]*)
 
 val update : b -> int -> int -> b
 (**[update board x y] returns a new board that responds to a hit at (x,y).
    [Requires] x, y to be ints. [Raises] [OutOfBounds] if [(x,y)] is not a valid
-   point on the board.*)
+   point on the board. [Raises] [RedunantHit] if [(x,y)] was already hit before. *)
 
 val is_lost : b -> bool
 (**[is_lost board] returns true if all of the ships on this board are sunk*)

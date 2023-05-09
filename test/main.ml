@@ -210,27 +210,6 @@ let ship_blackbox_tests =
 (*------------------------------------------------------------------------------*)
 (*Board tests*)
 
-let basic =
-  Yojson.Basic.from_file (data_dir_prefix ^ "basic.json") |> Board.from_json
-
-let complex =
-  Yojson.Basic.from_file (data_dir_prefix ^ "complex.json") |> Board.from_json
-
-let two_ship =
-  Yojson.Basic.from_file (data_dir_prefix ^ "two_ship.json") |> Board.from_json
-
-let three_ship =
-  Yojson.Basic.from_file (data_dir_prefix ^ "three_ship.json")
-  |> Board.from_json
-
-let test_get_height name board output =
-  name >:: fun _ ->
-  assert_equal output (Board.get_height board) ~printer:string_of_int
-
-let test_get_width name board output =
-  name >:: fun _ ->
-  assert_equal output (Board.get_width board) ~printer:string_of_int
-
 let string_of_list ?(open_delim = "[") ?(close_delim = "]") ?(sep = "; ")
     string_of_elt lst =
   let len = List.length lst in
@@ -255,10 +234,42 @@ let string_of_bindings key_to_string value_to_string lst =
   string_of_list ~open_delim:"{" ~close_delim:"}" ~sep:", " string_of_binding
     lst
 
+(** [string_tuple_list lst] is the string version of all elements in [lst] *)
 let rec string_tuple_list lst =
   match lst with
   | [] -> ""
   | h :: t -> string_of_bindings Fun.id Fun.id h ^ string_tuple_list t
+
+let basic =
+  Yojson.Basic.from_file (data_dir_prefix ^ "basic.json") |> Board.from_json
+
+let complex =
+  Yojson.Basic.from_file (data_dir_prefix ^ "complex.json") |> Board.from_json
+
+let two_ship =
+  Yojson.Basic.from_file (data_dir_prefix ^ "two_ship.json") |> Board.from_json
+
+let three_ship =
+  Yojson.Basic.from_file (data_dir_prefix ^ "three_ship.json")
+  |> Board.from_json
+
+let two_sub =
+  Yojson.Basic.from_file (data_dir_prefix ^ "two_sub.json") |> Board.from_json
+
+let test_make_empty name board output =
+  name >:: fun _ ->
+  assert_equal output
+    (string_tuple_list
+       (Board.get_board (Board.make_empty board) (Board.get_width board)))
+    ~printer:Fun.id
+
+let test_get_height name board output =
+  name >:: fun _ ->
+  assert_equal output (Board.get_height board) ~printer:string_of_int
+
+let test_get_width name board output =
+  name >:: fun _ ->
+  assert_equal output (Board.get_width board) ~printer:string_of_int
 
 let test_get_board name board output =
   name >:: fun _ ->
@@ -297,6 +308,9 @@ let test_update_outer name board output =
 
 let board_blackbox_tests =
   [
+    test_make_empty "empty" basic
+      "{∙: none, ∙: none, ∙: none}{∙: none, ∙: none, ∙: none}{∙: none, ∙: \
+       none, ∙: none}";
     test_get_height "complex board height = 16" complex 16;
     test_get_height "basic board height = 3" basic 3;
     test_get_width "complex board width = 16" complex 16;
@@ -313,6 +327,11 @@ let board_blackbox_tests =
     test_update "attempt hit at (1,1) on basic board" basic 1 1
       "{M: none, M: none, M: none}{M: none, X: Submarine_1, M: none}{M: none, \
        M: none, M: none}";
+    ( "hit out of bounds" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> Board.update basic 4 4) );
+    ( "redunant hit" >:: fun _ ->
+      assert_raises Board.RedundantHit (fun () ->
+          Board.update (Board.update basic 0 0) 0 0) );
     test_move_ship "move Submarine_1 up 1 right 1" basic Ship.place
       "Submarine_1" 1 1
       "{∙: none, ∙: none, S: Submarine_1}{∙: none, ∙: none, ∙: none}{∙: none, \
@@ -323,6 +342,9 @@ let board_blackbox_tests =
     ( "collision of ships" >:: fun _ ->
       assert_raises Board.Collide (fun () ->
           Board.move_ship two_ship "Submarine_1" Ship.place 2 2) );
+    ( "ship not found" >:: fun _ ->
+      assert_raises Board.ShipNotFound (fun () ->
+          Board.move_ship two_ship "Sub" Ship.place 2 2) );
     test_response "basic board (1,1) is Full" basic 1 1 true;
     test_response "basic board (1,1) is Hit" (Board.update basic 1 1) 1 1 true;
     test_response "basic board (1,0) is Empty" basic 1 0 false;
@@ -350,9 +372,67 @@ let board_blackbox_tests =
        none, ∙: none}";
   ]
 
+let board_glassbox_tests =
+  [
+    test_move_ship "move Aircraft_Carrier_1 down 1 left 1" two_ship Ship.place
+      "Aircraft_Carrier_1" (-1) 0
+      "{∙: none, S: Aircraft_Carrier_1, ∙: none}{∙: none, ∙: none, ∙: none}{S: \
+       Submarine_1, ∙: none, ∙: none}";
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 1 0) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 2 0) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 3 0) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 3 1) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 3 2) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 3 3) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 2 3) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 1 3) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 1 2) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 1 1) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 1 3) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 0 2) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship three_ship "Submarine_1" Ship.place 2 1) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship two_sub "Submarine_1" Ship.place 1 2) );
+    ( "collision of ships" >:: fun _ ->
+      assert_raises Board.Collide (fun () ->
+          Board.move_ship two_sub "Submarine_1" Ship.place 3 2) );
+  ]
+
 let suite =
   "test suite for BattleShip"
   >::: List.flatten
-         [ ship_blackbox_tests; ship_glassbox_tests; board_blackbox_tests ]
+         [
+           ship_blackbox_tests;
+           ship_glassbox_tests;
+           board_blackbox_tests;
+           board_glassbox_tests;
+         ]
 
 let _ = run_test_tt_main suite

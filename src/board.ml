@@ -126,7 +126,7 @@ let rec first_w lst w =
   | h :: t ->
       if w = 0 then []
       else
-        let tail = if w = 0 then [] else first_w t (w - 1) in
+        let tail = first_w t (w - 1) in
         h :: tail
 
 (**[after_w lst w] takes a lst and returns all of the elements after the first
