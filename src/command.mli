@@ -1,36 +1,13 @@
 (** Parsing of player commands. *)
 
-(**********************************************************************
- * DO NOT CHANGE THIS FILE
- * It is part of the interface the course staff will use to test your
- * submission.
- **********************************************************************)
 type coord = int * int
 (** the first element of this list is the x coord and the second is the y coord.
     Must be length 2 **)
 
-type object_phrase = string list
-(** The type [object_phrase] represents the object phrase that can be part of a
-    player command. Each element of the list represents a word of the object
-    phrase, where a "word" is defined as a consecutive sequence of non-space
-    characters. Thus, no element of the list should contain any leading,
-    internal, or trailing spaces. The list is in the same order as the words in
-    the original player command. For example:
-
-    - If the player command is ["go clock tower"], then the object phrase is
-      [\["clock"; "tower"\]].
-
-    - If the player command is ["go clock     tower"], then the object phrase is
-      again [\["clock"; "tower"\]]. *)
-
-(* Note that the backslashes in the OCamldoc comment above are inserted by
-   OCamlformat for sake of the HTML version of the documentation. When reading
-   the source code of the comment in this file, pretend that the backslashes do
-   not exist. That is, the object phrase is simply [["clock"; "tower"]]. *)
-
 (** The type [command] represents a player command that is decomposed into a
-    verb and possibly an object phrase. Invariant: the [object_phrase] carried
-    by [Go] must not be empty. *)
+    verb and possibly an object phrase. Invariant: the [name] and [coord]
+    carried by [Move] and [Rotate] must not be empty. The [coord] carried by
+    [Hit] must not be empty*)
 type command =
   | Move of {
       name : string;

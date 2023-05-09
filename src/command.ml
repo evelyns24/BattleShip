@@ -1,6 +1,5 @@
 (* Note: You may introduce new code anywhere in this file. *)
 
-type object_phrase = string list
 type coord = int * int
 
 type command =
