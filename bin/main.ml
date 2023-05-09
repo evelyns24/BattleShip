@@ -125,8 +125,11 @@ let rec get_response () =
 (**[process_move state player] outputs a new state after player [player] makes a
    move to customize their ship, either a move or a rotate command.*)
 let rec process_move state player =
-  print_string "What would you like to do? \n> ";
+  print_string "\nWhat would you like to do? \n> ";
   match get_command (read_line ()) false with
+  | exception End_of_file ->
+      print_string "\nPlease enter a valid command. \n> ";
+      process_move state player
   | Hit _ ->
       print_string
         "This is not the attack phase of the game. Please input a move or \
@@ -223,7 +226,7 @@ let rec play_turn state player =
       print_endline "quitting \nThank you for playing!";
       exit 0
   | exception End_of_file ->
-      print_string "Please put in a valid hit command. \n> ";
+      print_string "\nPlease put in a valid hit command. \n> ";
       play_turn state player
   | Move _ ->
       print_string
