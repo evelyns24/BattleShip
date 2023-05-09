@@ -423,6 +423,14 @@ let board_glassbox_tests =
     ( "collision of ships" >:: fun _ ->
       assert_raises Board.Collide (fun () ->
           Board.move_ship two_sub "Submarine_1" Ship.place 3 2) );
+    ( "hit out of bounds" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> Board.update basic (-1) 0) );
+    ( "hit out of bounds" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> Board.update basic 0 (-1)) );
+    ( "hit out of bounds" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> Board.update basic 4 0) );
+    ( "hit out of bounds" >:: fun _ ->
+      assert_raises OutOfBounds (fun () -> Board.update basic 0 4) );
   ]
 
 let suite =
