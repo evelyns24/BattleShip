@@ -42,7 +42,6 @@ module type BoardSig = sig
     b
 
   val update : b -> int -> int -> b
-  val score : b -> int -> int
   val is_lost : b -> bool
   val update_outer_board : b -> b
 end

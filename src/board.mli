@@ -55,10 +55,6 @@ val update : b -> int -> int -> b
    [Requires] x, y to be ints. [Raises] [OutOfBounds] if [(x,y)] is not a valid
    point on the board.*)
 
-val score : b -> int -> int
-(**[score board acc] returns the score associated with this board, essentially
-   the other player's score. This function is tail recursive*)
-
 val is_lost : b -> bool
 (**[is_lost board] returns true if all of the ships on this board are sunk*)
 

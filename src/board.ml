@@ -401,29 +401,6 @@ let update (board : b) (x : int) (y : int) : b =
             ships = replace_ship board.ships target_ship new_ship;
           }
 
-let rec score (board : b) (acc : int) : int =
-  match board.squares with
-  | [] -> acc
-  | h :: t ->
-      if h.state = Hit then
-        score
-          {
-            height = board.height;
-            width = board.width;
-            squares = t;
-            ships = board.ships;
-          }
-          (acc + 1)
-      else
-        score
-          {
-            height = board.height;
-            width = board.width;
-            squares = t;
-            ships = board.ships;
-          }
-          acc
-
 let is_lost (board : b) : bool =
   List.fold_left (fun acc ship -> acc && get_status ship) true board.ships
 
