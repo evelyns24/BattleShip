@@ -219,6 +219,10 @@ let complex =
 let two_ship =
   Yojson.Basic.from_file (data_dir_prefix ^ "two_ship.json") |> Board.from_json
 
+let three_ship =
+  Yojson.Basic.from_file (data_dir_prefix ^ "three_ship.json")
+  |> Board.from_json
+
 let test_get_height name board output =
   name >:: fun _ ->
   assert_equal output (Board.get_height board) ~printer:string_of_int
@@ -276,6 +280,21 @@ let test_move_ship name board move_function ship x y output =
     (string_tuple_list (Board.get_board new_b (Board.get_width board)))
     ~printer:Fun.id
 
+let test_response name board x y output =
+  name >:: fun _ ->
+  assert_equal output (Board.response board x y) ~printer:string_of_bool
+
+let test_is_lost name board output =
+  name >:: fun _ ->
+  assert_equal output (Board.is_lost board) ~printer:string_of_bool
+
+let test_update_outer name board output =
+  name >:: fun _ ->
+  assert_equal output
+    (Board.get_board (Board.update_outer_board board) (Board.get_width board)
+    |> string_tuple_list)
+    ~printer:Fun.id
+
 let board_blackbox_tests =
   [
     test_get_height "complex board height = 16" complex 16;
@@ -292,13 +311,10 @@ let board_blackbox_tests =
       "{∙: none, ∙: none, ∙: none}{M: none, S: Submarine_1, ∙: none}{∙: none, \
        ∙: none, ∙: none}";
     test_update "attempt hit at (1,1) on basic board" basic 1 1
-      "{∙: none, ∙: none, ∙: none}{∙: none, X: Submarine_1, ∙: none}{∙: none, \
-       ∙: none, ∙: none}";
+      "{M: none, M: none, M: none}{M: none, X: Submarine_1, M: none}{M: none, \
+       M: none, M: none}";
     test_move_ship "move Submarine_1 up 1 right 1" basic Ship.place
       "Submarine_1" 1 1
-      "{∙: none, ∙: none, S: Submarine_1}{∙: none, ∙: none, ∙: none}{∙: none, \
-       ∙: none, ∙: none}";
-    test_move_ship "_______________" two_ship Ship.place "Submarine_1" 2 2
       "{∙: none, ∙: none, S: Submarine_1}{∙: none, ∙: none, ∙: none}{∙: none, \
        ∙: none, ∙: none}";
     ( "move out of bounds" >:: fun _ ->
@@ -307,6 +323,31 @@ let board_blackbox_tests =
     ( "collision of ships" >:: fun _ ->
       assert_raises Board.Collide (fun () ->
           Board.move_ship two_ship "Submarine_1" Ship.place 2 2) );
+    test_response "basic board (1,1) is Full" basic 1 1 true;
+    test_response "basic board (1,1) is Hit" (Board.update basic 1 1) 1 1 true;
+    test_response "basic board (1,0) is Empty" basic 1 0 false;
+    test_response "basic board (1,0) is Miss" (Board.update basic 1 0) 1 0 false;
+    test_is_lost "no ships are sunk" two_ship false;
+    test_is_lost "only one ship is sunk" (Board.update two_ship 0 0) false;
+    test_is_lost "all ships are sunk"
+      (Board.update (Board.update two_ship 0 0) 2 2)
+      true;
+    test_update_outer "outer board doesnt change yet" two_ship
+      "{∙: none, ∙: none, ∙: none}{∙: none, ∙: none, ∙: none}{∙: none, ∙: \
+       none, ∙: none}";
+    test_update_outer "update outer after missing"
+      (Board.update two_ship 1 1)
+      "{∙: none, ∙: none, ∙: none}{∙: none, M: none, ∙: none}{∙: none, ∙: \
+       none, ∙: none}";
+    test_update_outer "update outer after hitting a ship but not sinking it"
+      (Board.update three_ship 2 2)
+      "{∙: none, ∙: none, ∙: none, ∙: none}{∙: none, ∙: none, X: none, ∙: \
+       none}{∙: none, ∙: none, ∙: none, ∙: none}{∙: none, ∙: none, ∙: none, ∙: \
+       none}";
+    test_update_outer "update outer after sinking a ship"
+      (Board.update two_ship 0 0)
+      "{∙: none, ∙: none, ∙: none}{M: none, M: none, ∙: none}{X: none, M: \
+       none, ∙: none}";
   ]
 
 let suite =
