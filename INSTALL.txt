@@ -20,3 +20,8 @@ From the terminal:
   make clean: this removes the _dune directory
   make doc: this builds HTML documentation with Odoc located at 
             _build/default/_doc/_html/Game/Game/index.html
+  make loc: this command first runs dune clean, then counts the number of lines 
+            of code via cloc --by-file --include-lang=OCaml . and finally 
+            recompiles the code with dune build
+  make bisect: this produces a bisect coverage report after running the tests in
+               test/main.ml. The report is located at _coverage\index.html
