@@ -345,12 +345,10 @@ let rec get_border (board : b) (ship_coords : (int * int) list)
 let rec replace_all (squares : t list) = function
   | [] -> squares
   | h :: t ->
-      if h.state = Hit then replace_all squares t
-      else
-        replace_all
-          (replace_square squares h
-             { x = h.x; y = h.y; state = Miss; name = h.name })
-          t
+      replace_all
+        (replace_square squares h
+           { x = h.x; y = h.y; state = Miss; name = h.name })
+        t
 
 (**[reveal_border board squares ship] returns a list of squares where all of the
    border squares around ship [ship] are revealed.*)
