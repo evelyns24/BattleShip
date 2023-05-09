@@ -4,7 +4,8 @@ open Ship
 open Command
 
 (********************************************************************
-   Here are some helper functions for your testing of set-like lists.
+   Test Plan:
+   We will create both blackbox and glassbox test cases. First, we will create test cases based on the specs of the functions (this will be the blackbox test cases). Then, we will add more test cases based on the coverage shown in Bisect (this will be the glassbox test cases) to achieve a higher coverage. We will test all functions in ship.mli using helper functions that create OUnit test. We will then test all functions, except for from_json, in board.mli also using helper fucntions that create OUint test. We wll omit from_json because it is used in other functions, which we will be testing.
  ********************************************************************)
 
 (** [cmp_set_like_lists lst1 lst2] compares two lists to see whether they are
@@ -39,15 +40,40 @@ let pp_list pp_elt lst =
   in
   "[" ^ pp_elts lst ^ "]"
 
+let string_of_list ?(open_delim = "[") ?(close_delim = "]") ?(sep = "; ")
+    string_of_elt lst =
+  let len = List.length lst in
+  let open Buffer in
+  (* As a rough lower bound assume that each element takes a minimum of 3
+     characters to represent including a separator, e.g., ["v, "]. The buffer
+     will grow as needed, so it's okay if that estimate is low. *)
+  let buf = create (3 * len) in
+  add_string buf open_delim;
+  List.iteri
+    (fun i v ->
+      add_string buf (string_of_elt v);
+      if i < len - 1 then add_string buf sep)
+    lst;
+  add_string buf close_delim;
+  contents buf
+
+let string_of_bindings key_to_string value_to_string lst =
+  let string_of_binding (k, v) =
+    Printf.sprintf "%s: %s" (key_to_string k) (value_to_string v)
+  in
+  string_of_list ~open_delim:"{" ~close_delim:"}" ~sep:", " string_of_binding
+    lst
+
+(** [string_tuple_list lst] is the string version of all elements in [lst] *)
+let rec string_tuple_list lst =
+  match lst with
+  | [] -> ""
+  | h :: t -> string_of_bindings Fun.id Fun.id h ^ string_tuple_list t
+
 (********************************************************************
    End helper functions.
  ********************************************************************)
 
-(* You are welcome to add strings containing JSON here, and use them as the
-   basis for unit tests. You can also use the JSON files in the data directory
-   as tests. And you can add JSON files in this directory and use them, too. *)
-
-(* Here is an example of how to load files from the data directory: *)
 let data_dir_prefix = "data" ^ Filename.dir_sep
 let basic_ship = make "submarine" [ (1, 1) ]
 let two_long = make "frigate" [ (3, 1); (3, 2) ]
@@ -62,7 +88,7 @@ let test_location (name : string) (ship : t) (output : (int * int) list) =
   assert_equal output (location ship) ~cmp:cmp_set_like_lists
     ~printer:(pp_list pp_coord)
 
-(**[tes_get_name name ship output] constructs an OUnit test named [name] that
+(**[test_get_name name ship output] constructs an OUnit test named [name] that
    asserts the quality of [expected_output] with [get_name ship]. *)
 let test_get_name name ship output =
   name >:: fun _ -> assert_equal output (get_name ship) ~printer:Fun.id
@@ -210,36 +236,6 @@ let ship_blackbox_tests =
 (*------------------------------------------------------------------------------*)
 (*Board tests*)
 
-let string_of_list ?(open_delim = "[") ?(close_delim = "]") ?(sep = "; ")
-    string_of_elt lst =
-  let len = List.length lst in
-  let open Buffer in
-  (* As a rough lower bound assume that each element takes a minimum of 3
-     characters to represent including a separator, e.g., ["v, "]. The buffer
-     will grow as needed, so it's okay if that estimate is low. *)
-  let buf = create (3 * len) in
-  add_string buf open_delim;
-  List.iteri
-    (fun i v ->
-      add_string buf (string_of_elt v);
-      if i < len - 1 then add_string buf sep)
-    lst;
-  add_string buf close_delim;
-  contents buf
-
-let string_of_bindings key_to_string value_to_string lst =
-  let string_of_binding (k, v) =
-    Printf.sprintf "%s: %s" (key_to_string k) (value_to_string v)
-  in
-  string_of_list ~open_delim:"{" ~close_delim:"}" ~sep:", " string_of_binding
-    lst
-
-(** [string_tuple_list lst] is the string version of all elements in [lst] *)
-let rec string_tuple_list lst =
-  match lst with
-  | [] -> ""
-  | h :: t -> string_of_bindings Fun.id Fun.id h ^ string_tuple_list t
-
 let basic =
   Yojson.Basic.from_file (data_dir_prefix ^ "basic.json") |> Board.from_json
 
@@ -256,6 +252,9 @@ let three_ship =
 let two_sub =
   Yojson.Basic.from_file (data_dir_prefix ^ "two_sub.json") |> Board.from_json
 
+(**[test_make_empty name board output] constructs an OUnit test named [name]
+   that asserts the quality of [output] with
+   [get_board (make_empty board) (get_width board)]. *)
 let test_make_empty name board output =
   name >:: fun _ ->
   assert_equal output
@@ -263,20 +262,30 @@ let test_make_empty name board output =
        (Board.get_board (Board.make_empty board) (Board.get_width board)))
     ~printer:Fun.id
 
+(**[test_get_height name board output] constructs an OUnit test named [name]
+   that asserts the quality of [output] with [get_height board]. *)
 let test_get_height name board output =
   name >:: fun _ ->
   assert_equal output (Board.get_height board) ~printer:string_of_int
 
+(**[test_get_width name board output] constructs an OUnit test named [name] that
+   asserts the quality of [output] with [get_width board]. *)
 let test_get_width name board output =
   name >:: fun _ ->
   assert_equal output (Board.get_width board) ~printer:string_of_int
 
+(**[test_get_board name board output] constructs an OUnit test named [name] that
+   asserts the quality of [output] with
+   [string_tuple_list (get_board board (get_width board))]. *)
 let test_get_board name board output =
   name >:: fun _ ->
   assert_equal output
     (string_tuple_list (Board.get_board board (Board.get_width board)))
     ~printer:Fun.id
 
+(**[test_update name board x y output] constructs an OUnit test named [name]
+   that asserts the quality of [output] with
+   [string_tuple_list (get_board (update board x y) (get_width board))]. *)
 let test_update name board x y output =
   name >:: fun _ ->
   assert_equal output
@@ -284,6 +293,9 @@ let test_update name board x y output =
     |> string_tuple_list)
     ~printer:Fun.id
 
+(**[test_move_ship name board move_fun ship x y output] constructs an OUnit test
+   named [name] that asserts the quality of [output] with the string version of
+   the board [move_ship board ship move_fun x y]. *)
 let test_move_ship name board move_function ship x y output =
   name >:: fun _ ->
   let new_b = Board.move_ship board ship move_function x y in
@@ -291,14 +303,21 @@ let test_move_ship name board move_function ship x y output =
     (string_tuple_list (Board.get_board new_b (Board.get_width board)))
     ~printer:Fun.id
 
+(**[test_response name board x y output] constructs an OUnit test named [name]
+   that asserts the quality of [output] with [repsonse board x y]. *)
 let test_response name board x y output =
   name >:: fun _ ->
   assert_equal output (Board.response board x y) ~printer:string_of_bool
 
+(**[test_is_lost name board output] constructs an OUnit test named [name] that
+   asserts the quality of [output] with [is_lost board]. *)
 let test_is_lost name board output =
   name >:: fun _ ->
   assert_equal output (Board.is_lost board) ~printer:string_of_bool
 
+(**[test_update_outer name board output] constructs an OUnit test named [name]
+   that asserts the quality of [output] with the string version of the board
+   [update_outer_board board]. *)
 let test_update_outer name board output =
   name >:: fun _ ->
   assert_equal output
