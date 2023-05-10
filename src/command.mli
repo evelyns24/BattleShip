@@ -29,7 +29,8 @@ exception Malformed
 val parse : string -> command
 (** [parse str] parses a player's input into a [command], as follows. The first
     word (i.e., consecutive sequence of non-space characters) of [str] becomes
-    the verb. The rest of the words, if any, become the object phrase. Examples:
+    the verb. The rest of the words, if any, get categorized based on the first
+    word accordingly. Examples:
 
     - [parse "        hit    1  5   "] is [Hit \(1,5\)]
     - [parse " quit   "] is [Quit]

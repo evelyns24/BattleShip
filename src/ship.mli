@@ -12,7 +12,7 @@ exception OutOfBounds
 (**Raise when a portion of the ship is out of bounds*)
 
 val make : string -> (int * int) list -> t
-(**[make loc] takes in a list of points and creates a ship*)
+(**[make name loc] takes in a list of points and creates a ship named [name]*)
 
 val location : t -> (int * int) list
 (** [location ship] returns the location of the ship as a list of tuple of 2
