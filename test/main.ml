@@ -3,10 +3,14 @@ open Game
 open Ship
 open Command
 
-(********************************************************************
-   Test Plan:
-   We will create both blackbox and glassbox test cases. First, we will create test cases based on the specs of the functions (this will be the blackbox test cases). Then, we will add more test cases based on the coverage shown in Bisect (this will be the glassbox test cases) to achieve a higher coverage. We will test all functions in ship.mli using helper functions that create OUnit test. We will then test all functions, except for from_json, in board.mli also using helper fucntions that create OUint test. We wll omit from_json because it is used in other functions, which we will be testing.
- ********************************************************************)
+(* Test Plan: We will create both blackbox and glassbox test cases. First, we
+   will create test cases based on the specs of the functions (this will be the
+   blackbox test cases). Then, we will add more test cases based on the coverage
+   shown in Bisect (this will be the glassbox test cases) to achieve a higher
+   coverage. We will test all functions in ship.mli using helper functions that
+   create OUnit test. We will then test all functions, except for from_json, in
+   board.mli also using helper fucntions that create OUint test. We wll omit
+   from_json because it is used in other functions, which we will be testing. *)
 
 (** [cmp_set_like_lists lst1 lst2] compares two lists to see whether they are
     equivalent set-like lists. That means checking two things. First, they must
@@ -452,6 +456,106 @@ let board_glassbox_tests =
       assert_raises OutOfBounds (fun () -> Board.update basic 0 4) );
   ]
 
+open State
+
+(*let init_state_test (name : string) (b1 : Board.b) (b2 : Board.b)
+  (expected_output : State.t) = name >:: fun _ -> assert_equal expected_output
+  (init_state b1 b2) *)
+(* Testing [init_state b1 b2] while testing other functions *)
+let s1 = init_state basic basic
+let s2 = init_state two_ship three_ship
+let s3 = init_state complex complex
+
+let get_inner_test (name : string) (st : State.t) (p : int)
+    (expected_output : Board.b) =
+  name >:: fun _ -> assert_equal expected_output (get_inner st p)
+
+let get_outer_test (name : string) (st : State.t) (p : int)
+    (expected_output : Board.b) =
+  name >:: fun _ -> assert_equal expected_output (get_outer st p)
+
+let get_inner_string (name : string) (st : State.t) (p : int)
+    (expected_output : string) =
+  name >:: fun _ ->
+  assert_equal expected_output
+    (string_tuple_list
+       (Board.get_board (get_inner st p) (Board.get_width (get_inner st p))))
+    ~printer:Fun.id
+
+let get_outer_string (name : string) (st : State.t) (p : int)
+    (expected_output : string) =
+  name >:: fun _ ->
+  assert_equal expected_output
+    (string_tuple_list
+       (Board.get_board (get_outer st p) (Board.get_width (get_outer st p))))
+    ~printer:Fun.id
+
+let is_hit_test (name : string) (st : State.t) (p : int) (x : int) (y : int)
+    (expected : bool) =
+  name >:: fun _ -> assert_equal expected (is_hit st p x y)
+
+let state_blackbox_tests =
+  [
+    get_inner_test "inner board for p1 in state s1 should be basic" s1 1 basic;
+    get_inner_test "inner board for p2 in state s1 should be basic" s1 2 basic;
+    get_inner_test "inner board for p2 in state s2 should be three_ship" s2 2
+      three_ship;
+    get_outer_test "outer board for p1 in state s2 with no hits should be empty"
+      s2 1
+      (Board.make_empty three_ship);
+    get_outer_test "outer board for p2 in state s3 with no hits should be empty"
+      s3 2 (Board.make_empty complex);
+    get_inner_string "move p1's Submarine_1 in state s1 one right, one up"
+      (move s1 1 "Submarine_1" 1 1)
+      1
+      "{∙: none, ∙: none, S: Submarine_1}{∙: none, ∙: none, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    get_inner_string "move p2's Submarine_2 in state s2 none right, one down"
+      (move s2 2 "Submarine_2" 0 (-1))
+      2
+      "{∙: none, ∙: none, ∙: none, ∙: none}{S: Submarine_2, ∙: none, S: \
+       Aircraft_Carrier_1, ∙: none}{∙: none, ∙: none, S: Aircraft_Carrier_1, \
+       ∙: none}{S: Submarine_1, ∙: none, ∙: none, ∙: none}";
+    get_inner_string
+      "move p1's Aircraft_Carrier_1 in state s2 left one, down\n      none"
+      (move s2 1 "Aircraft_Carrier_1" (-1) 0)
+      1
+      "{∙: none, S: Aircraft_Carrier_1, ∙: none}{∙: none, ∙: none, ∙: none}{S: \
+       Submarine_1, ∙: none, ∙: none}";
+    get_inner_string
+      "rotate p1's Submarine_1 in state s1 counterclockwise around (0,1)"
+      (rotate s1 1 "Submarine_1" 0 1)
+      1
+      "{S: Submarine_1, ∙: none, ∙: none}{∙: none, ∙: none, ∙: none}{∙: none, \
+       ∙: none, ∙: none}";
+    get_inner_string
+      "rotate p2's Aircraft_Carrier_1 in state s2 counterclockwise around (2,2)"
+      (rotate s2 2 "Aircraft_Carrier_1" 2 2)
+      2
+      "{S: Submarine_2, ∙: none, ∙: none, ∙: none}{∙: none, ∙: none, S: \
+       Aircraft_Carrier_1, S: Aircraft_Carrier_1}{∙: none, ∙: none, ∙: none, \
+       ∙: none}{S: Submarine_1, ∙: none, ∙: none, ∙: none}";
+    get_outer_string "p1 hit p2's Submarine_1 in state s1 at (1,1)"
+      (hit s1 1 1 1) 2
+      "{M: none, M: none, M: none}{M: none, X: none, M: none}{M: none, M: \
+       none, M: none}";
+    get_outer_string "p2 hit p1's Submarine_1 in state s2 at (0, 0)"
+      (hit s2 2 0 0) 1
+      "{∙: none, ∙: none, ∙: none}{M: none, M: none, ∙: none}{X: none, M: \
+       none, ∙: none}";
+    get_outer_string "p1 missed p2's Submarine_2 in state s2 at (0, 2)"
+      (hit s2 1 0 2) 2
+      "{∙: none, ∙: none, ∙: none, ∙: none}{M: none, ∙: none, ∙: none, ∙: \
+       none}{∙: none, ∙: none, ∙: none, ∙: none}{∙: none, ∙: none, ∙: none, ∙: \
+       none}";
+    is_hit_test "(1,1) is hit (true) by p2 in state s1" (hit s1 1 1 1) 2 1 1
+      true;
+    is_hit_test "p2's (0, 2) is not hit (false) by p1 in state s2"
+      (hit s2 1 0 2) 1 0 2 false;
+    is_hit_test "p1's (0, 0) is hit (true) by p2 in state s2" (hit s2 2 0 0) 2 0
+      0 true;
+  ]
+
 let suite =
   "test suite for BattleShip"
   >::: List.flatten
@@ -460,6 +564,7 @@ let suite =
            ship_glassbox_tests;
            board_blackbox_tests;
            board_glassbox_tests;
+           state_blackbox_tests;
          ]
 
 let _ = run_test_tt_main suite
