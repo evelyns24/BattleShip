@@ -556,6 +556,40 @@ let state_blackbox_tests =
       0 true;
   ]
 
+let parse_test (name : string) (s : string) (expected : command) =
+  name >:: fun _ -> assert_equal expected (parse s)
+
+let parse_empty (name : string) (s : string) =
+  name >:: fun _ -> assert_raises Empty (fun () -> parse s)
+
+let parse_malformed (name : string) (s : string) =
+  name >:: fun _ -> assert_raises Malformed (fun () -> parse s)
+
+let command_tests =
+  [
+    parse_empty "an empty command" "";
+    parse_empty "command with multiple white spaces" "   ";
+    parse_test "command 'quit'" "quit" Quit;
+    parse_test "command 'quit'" "   quit    " Quit;
+    parse_malformed "malformed 'quit' command" "quit error";
+    parse_test "command with 'move' to (1,1) with Submarine_1"
+      "move Submarine_1 1 1"
+      (Move { name = "Submarine_1"; coordinate = (1, 1) });
+    parse_test "command with 'move' to (10, 11) with Cruiser"
+      "move Cruiser 10 11"
+      (Move { name = "Cruiser"; coordinate = (10, 11) });
+    parse_test "command with 'rotate' around (0,0) with Frigate"
+      "rotate Frigate 0   0"
+      (Rotate { name = "Frigate"; coordinate = (0, 0) });
+    parse_test "command with 'hit' to (1, 3) " "    hit  1   3" (Hit (1, 3));
+    parse_malformed "malformed 'move' command" "move error";
+    parse_malformed "malformed 'Move' command" "Move";
+    parse_malformed "malformed 'Quit' command" " Quit ";
+    parse_malformed "malformed 'rotate' command" " rotate name 8 ";
+    parse_malformed "malformed 'rotate' command" " Rotate name            ";
+    parse_malformed "malformed 'hit' command with non-integers" "hit int1 int2";
+  ]
+
 let suite =
   "test suite for BattleShip"
   >::: List.flatten
@@ -565,6 +599,7 @@ let suite =
            board_blackbox_tests;
            board_glassbox_tests;
            state_blackbox_tests;
+           command_tests;
          ]
 
 let _ = run_test_tt_main suite
